@@ -1,5 +1,5 @@
 -- ============================================================
--- Study Circle — Initial Database Migration
+-- Study Circle — Initial Database Migration (FIXED)
 -- ============================================================
 -- Apply: Copy this entire file into Supabase SQL Editor → Run
 -- ============================================================
@@ -39,16 +39,38 @@ CREATE TABLE public.posts (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz,
   
-  -- Full-text search vector (auto-generated from title, body, tags)
-  search_vector tsvector GENERATED ALWAYS AS (
-    setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||
-    setweight(to_tsvector('english', COALESCE(body, '')), 'B') ||
-    setweight(to_tsvector('english', COALESCE(array_to_string(tags, ' '), '')), 'C')
-  ) STORED
+  -- Full-text search vector (maintained by trigger, not generated column)
+  search_vector tsvector
 );
 
 COMMENT ON TABLE public.posts IS 'Knowledge base posts with full-text search';
-COMMENT ON COLUMN public.posts.search_vector IS 'Auto-generated tsvector (title=A, body=B, tags=C)';
+COMMENT ON COLUMN public.posts.search_vector IS 'tsvector maintained by trigger (title=A, body=B, tags=C)';
+
+-- ------------------------------------------------------------
+-- 3b. SEARCH VECTOR FUNCTION AND TRIGGER
+-- ------------------------------------------------------------
+
+-- Function: Compute the search vector from title, body, and tags
+CREATE OR REPLACE FUNCTION public.posts_update_search_vector()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('english', COALESCE(NEW.title, '')), 'A') ||
+    setweight(to_tsvector('english', COALESCE(NEW.body, '')), 'B') ||
+    setweight(to_tsvector('english', COALESCE(array_to_string(NEW.tags, ' '), '')), 'C');
+  RETURN NEW;
+END;
+$$;
+
+-- Trigger: Update search_vector before INSERT or UPDATE
+CREATE TRIGGER posts_search_vector_trigger
+  BEFORE INSERT OR UPDATE ON public.posts
+  FOR EACH ROW
+  EXECUTE FUNCTION public.posts_update_search_vector();
+
+COMMENT ON FUNCTION public.posts_update_search_vector() IS 'Computes weighted tsvector for full-text search on posts';
 
 -- ------------------------------------------------------------
 -- 4. COMMENTS TABLE
