@@ -19,21 +19,35 @@ We surveyed 7 fellows across the Web Development and Data Analytics tracks (mix 
 
 ### Survey dashboard
 
-<img src="docs/images/01-cohort-and-tenure.jpg" alt="Respondent cohort and tenure breakdown" width="600">
+### Survey Dashboard & Data Charts
 
-<img src="docs/images/02-where-fellows-ask-and-repeat-questions.jpg" alt="Where fellows ask questions today and how often they repeat a question" width="600">
+#### 1. Respondent Cohorts & Fellowship Duration
 
-<img src="docs/images/03-struggle-finding-answers-and-holding-back.jpg" alt="How often fellows struggle to find past answers, and how often they hold back from asking" width="600">
+![Fellowship Cohorts and Duration](docs/images/01-cohort-and-tenure.jpg)
 
-<img src="docs/images/04-why-fellows-hold-back.jpg" alt="Reasons fellows hold back from asking publicly" width="600">
+#### 2. Communication Channels & Repetitive Questions
 
-<img src="docs/images/05-likelihood-to-use-and-top-features.jpg" alt="Likelihood to use Study Circle and top requested features" width="600">
+![Communication Channels and Question Repetition](docs/images/02-where-fellows-ask-and-repeat-questions.jpg)
 
-<img src="docs/images/06-topics-wanted.jpg" alt="Topics fellows wish already had clear answers collected" width="600">
+#### 3. Question Hesitation & Barriers
 
-<img src="docs/images/07-volunteers-for-seed-content.jpg" alt="Fellows who volunteered to help seed content" width="600">
+![Public Question Hesitation and Barriers](docs/images/04-why-fellows-hold-back.jpg)
 
-<img src="docs/images/08-starter-questions-this-week.jpg" alt="How many starter questions volunteers could contribute this week" width="600">
+#### 4. Chat History Search Struggles
+
+![Search Struggles and Intent to Use](docs/images/03-struggle-finding-answers-and-holding-back.jpg)
+
+#### 5. Desired Topics & Most Valuable Features
+
+![Desired Topics and Priority Features](docs/images/05-likelihood-to-use-and-top-features.jpg)
+
+![Topics Wanted](docs/images/06-topics-wanted.jpg)
+
+#### 6. Volunteer Engagement for Seed Content
+
+![Volunteer Engagement](docs/images/07-volunteers-for-seed-content.jpg)
+
+![Starter Questions](docs/images/08-starter-questions-this-week.jpg)
 
 ## Solution
 
