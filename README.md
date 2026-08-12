@@ -144,5 +144,17 @@ npm run dev
 
 Database migrations live in `supabase/migrations/`. Apply them via Supabase SQL Editor in order.
 
+### Files
+
 - `first-schema.sql` — Core tables, indexes, RLS, full-text search
 - `seed-data.sql` — Development seed data with realistic posts, comments, and votes
+
+Before running `seed-data.sql`:
+
+1. Create 3 test users via the signup page
+2. Get their UUIDs from Supabase → Authentication → Users
+3. Replace `USER_1_ID`, `USER_2_ID`, `USER_3_ID` in the seed file with your actual UUIDs
+4. Replace `'Person A'`, `'Person B'`, `'Person C'` with your actual display names
+5. Run in Supabase SQL Editor
+
+See `supabase/migrations/README.md` for detailed instructions.
