@@ -1,3 +1,126 @@
 # Study Circle
 
-Searchable knowledge-sharing platform for fellows
+A searchable knowledge-sharing platform for software development fellowship cohorts.
+
+## Problem
+
+Fellows ask questions in class group chats where answers get buried, the same questions are asked repeatedly across cohorts, and good answers disappear into chat history. Some fellows are uncomfortable asking questions publicly in large groups.
+
+## Validation
+
+We surveyed 7 fellows across the Web Development and Data Analytics tracks (mix of 3–6 month and 6+ month/alumni tenure). Key findings:
+
+- **The pain is real, not assumed.** All 7 respondents currently get help through class group chat, DMing a mentor, or asking a peer privately — and 66.7% said they've asked a question they later realized had already been answered in the group.
+- **Chat history doesn't work as a knowledge base.** 57% of respondents said they "often" or "almost always" struggle to find a past answer in chat history, and named questions like _"difference between const and let"_ and _"how is software developer think"_ as things asked more than once.
+- **Fear, not laziness, keeps people from asking.** 71.4% have held back from asking a question publicly at least once. Of those, the top reasons were fear of looking "stupid" (50%), the chat moving too fast (33.3%), and a preference for privacy (33.3%).
+- **Demand for the actual solution is strong.** 85.7% said they'd be "likely" or "very likely" to search a knowledge base before asking in chat, and every single respondent (100%) picked "search by keyword/topic" as a must-have feature, followed by mentor-verified answers (71.4%) and answer notifications (42.9%).
+- **There's a starting pool of content.** 2 fellows volunteered to contribute seed questions this week, most estimating they could realistically write 1–3 starter questions each — useful for seeding the knowledge base before demo day.
+- Fellows most want existing answers for frontend topics (HTML/CSS/JS/React), soft skills/career/interview prep, and fellowship process questions — each named by 50% of respondents.
+
+### Survey dashboard
+
+### Survey Dashboard & Data Charts
+
+#### 1. Respondent Cohorts & Fellowship Duration
+
+![Fellowship Cohorts and Duration](docs/images/01-cohort-and-tenure.jpg)
+
+#### 2. Communication Channels & Repetitive Questions
+
+![Communication Channels and Question Repetition](docs/images/02-where-fellows-ask-and-repeat-questions.jpg)
+
+#### 3. Question Hesitation & Barriers
+
+![Public Question Hesitation and Barriers](docs/images/04-why-fellows-hold-back.jpg)
+
+#### 4. Chat History Search Struggles
+
+![Search Struggles and Intent to Use](docs/images/03-struggle-finding-answers-and-holding-back.jpg)
+
+#### 5. Desired Topics & Most Valuable Features
+
+![Desired Topics and Priority Features](docs/images/05-likelihood-to-use-and-top-features.jpg)
+
+![Topics Wanted](docs/images/06-topics-wanted.jpg)
+
+#### 6. Volunteer Engagement for Seed Content
+
+![Volunteer Engagement](docs/images/07-volunteers-for-seed-content.jpg)
+
+![Starter Questions](docs/images/08-starter-questions-this-week.jpg)
+
+## Solution
+
+Study Circle provides a searchable knowledge base where fellows can:
+
+- Ask questions with titles, detailed bodies, and tags
+- Search existing questions and answers
+- Comment on posts
+- Upvote helpful content
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, App Router
+- **Backend**: Supabase (PostgreSQL, Auth, API)
+- **Database**: PostgreSQL with full-text search, RLS
+- **Validation**: React Hook Form + Zod
+
+## Database Design
+
+### Tables
+
+- **profiles** — Public user data linked to auth.users
+- **posts** — Knowledge base entries with full-text search
+- **comments** — Threaded discussions on posts
+- **votes** — Upvotes on posts and comments (XOR constraint)
+
+### Key Decisions
+
+- UUIDs for all primary keys (security, distribution)
+- Full-text search with tsvector/GIN index (not ILIKE)
+- Partial unique indexes for one-vote-per-user-per-target
+- RLS on all tables (never disabled)
+
+## Authentication
+
+Supabase Auth with email/password. Profiles auto-created via trigger on `auth.users` insert.
+
+## Search Strategy
+
+PostgreSQL full-text search using:
+
+- `tsvector` generated from title (weight A), body (weight B), tags (weight C)
+- GIN index for performance
+- `ts_rank()` for relevance ordering
+- Combined with tag filtering via `ANY(tags)`
+
+## Security (RLS)
+
+Row Level Security enabled on all tables:
+
+- Public read access for posts and comments
+- Authenticated users can only modify their own content
+- Vote uniqueness enforced at database level
+- Post authors can moderate comments on their posts
+
+## Development Setup
+
+1. Clone the repository
+2. Run `npm install`
+3. Copy `.env.example` to `.env.local` and add Supabase keys
+4. Run `npm run dev`
+5. Apply migrations in `supabase/migrations/` via Supabase SQL Editor
+
+## Team Workflow
+
+- Main branch is protected
+- Feature branches for all work
+- PRs require review before merge
+- Database changes via migration files
+- Conventional commits (`feat:`, `chore:`, `fix:`, `docs:`)
+
+## Migration Workflow
+
+Database migrations live in `supabase/migrations/`. Apply them via Supabase SQL Editor in order.
+
+`first-schema.sql` — Core tables, indexes, RLS, full-text search
