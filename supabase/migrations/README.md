@@ -32,14 +32,34 @@ This folder contains SQL migration files for the Study Circle database.
 - Profile auto-creation via trigger on `auth.users` insert
 - Foreign keys with CASCADE delete for data integrity
 
-## Seed data
+## Seed data instructions
 
-The `seed-data.sql` file populates the database with 3 users, 6 realistic posts, 6 comments, and 10 votes for development and testing purposes.
+The `seed-data.sql` file populates the database with test data: 3 users, 6 realistic posts, 6 comments, and 10 votes for development and testing purposes.
 
-**Before running seed data:**
-1. Create test users through the application signup page
-2. Get their UUIDs from Supabase → Authentication → Users
-3. Update the UUIDs in the seed file if using different test users
+### ⚠️ BEFORE running seed-data.sql:
+
+1. **Create 3 test users** through your app's signup page:
+   - Person A: `your-email-1@test.com`
+   - Person B: `your-email-2@test.com`
+   - Person C: `your-email-3@test.com`
+
+2. **Get their UUIDs** from Supabase Dashboard → Authentication → Users
+
+3. **Replace these placeholders** in `seed-data.sql`:
+   - `USER_1_ID` → Person A's actual UUID
+   - `USER_2_ID` → Person B's actual UUID
+   - `USER_3_ID` → Person C's actual UUID
+   - `'Person A'` → Person A's actual display name
+   - `'Person B'` → Person B's actual display name
+   - `'Person C'` → Person C's actual display name
+
+4. **Find and replace** — most SQL editors have find-and-replace (Ctrl+H or Cmd+H):
+   - Search `USER_1_ID` → Replace with first user's UUID
+   - Search `USER_2_ID` → Replace with second user's UUID
+   - Search `USER_3_ID` → Replace with third user's UUID
+   - Search `Person A` → Replace with first user's name
+   - Search `Person B` → Replace with second user's name
+   - Search `Person C` → Replace with third user's name
 
 ## Creating new migrations
 
