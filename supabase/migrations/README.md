@@ -13,13 +13,59 @@ This folder contains SQL migration files for the Study Circle database.
 
 | File | Description |
 |------|-------------|
-| 001_initial_schema.sql | Core tables, indexes, RLS, search |
+| `first-schema.sql` | Core tables, indexes, RLS, search |
+| `seed-data.sql` | Development seed data (posts, comments, votes) | Run second |
+
+## About the schema
+
+### Tables
+- **profiles** — Public user data linked to `auth.users` (auto-created via trigger)
+- **posts** — Knowledge base entries with full-text search (`search_vector` maintained by trigger)
+- **comments** — Discussion threads linked to posts and users
+- **votes** — Upvotes on posts or comments with XOR constraint
+
+### Key design decisions
+- UUID primary keys on all tables
+- Full-text search via `tsvector` with GIN index (weighted: title A, body B, tags C)
+- Partial unique indexes enforce one-vote-per-user-per-target
+- Row Level Security enabled on all tables
+- Profile auto-creation via trigger on `auth.users` insert
+- Foreign keys with CASCADE delete for data integrity
+
+## Seed data instructions
+
+The `seed-data.sql` file populates the database with test data: 3 users, 6 realistic posts, 6 comments, and 10 votes for development and testing purposes.
+
+### ⚠️ BEFORE running seed-data.sql:
+
+1. **Create 3 test users** through your app's signup page:
+   - Person A: `your-email-1@test.com`
+   - Person B: `your-email-2@test.com`
+   - Person C: `your-email-3@test.com`
+
+2. **Get their UUIDs** from Supabase Dashboard → Authentication → Users
+
+3. **Replace these placeholders** in `seed-data.sql`:
+   - `USER_1_ID` → Person A's actual UUID
+   - `USER_2_ID` → Person B's actual UUID
+   - `USER_3_ID` → Person C's actual UUID
+   - `'Person A'` → Person A's actual display name
+   - `'Person B'` → Person B's actual display name
+   - `'Person C'` → Person C's actual display name
+
+4. **Find and replace** — most SQL editors have find-and-replace (Ctrl+H or Cmd+H):
+   - Search `USER_1_ID` → Replace with first user's UUID
+   - Search `USER_2_ID` → Replace with second user's UUID
+   - Search `USER_3_ID` → Replace with third user's UUID
+   - Search `Person A` → Replace with first user's name
+   - Search `Person B` → Replace with second user's name
+   - Search `Person C` → Replace with third user's name
 
 ## Creating new migrations
 
 When making schema changes:
 
-1. Create a new migration file: `00X_description.sql`
+1. Create a new migration file with a descriptive name
 2. Write the SQL changes
 3. Apply via SQL Editor
 4. Commit the migration file to Git

@@ -6,6 +6,8 @@ A searchable knowledge-sharing platform for software development fellowship coho
 
 Fellows ask questions in class group chats where answers get buried, the same questions are asked repeatedly across cohorts, and good answers disappear into chat history. Some fellows are uncomfortable asking questions publicly in large groups.
 
+---
+
 ## Validation
 
 We surveyed 7 fellows across the Web Development and Data Analytics tracks (mix of 3–6 month and 6+ month/alumni tenure). Key findings:
@@ -17,37 +19,15 @@ We surveyed 7 fellows across the Web Development and Data Analytics tracks (mix 
 - **There's a starting pool of content.** 2 fellows volunteered to contribute seed questions this week, most estimating they could realistically write 1–3 starter questions each — useful for seeding the knowledge base before demo day.
 - Fellows most want existing answers for frontend topics (HTML/CSS/JS/React), soft skills/career/interview prep, and fellowship process questions — each named by 50% of respondents.
 
-### Survey dashboard
-
 ### Survey Dashboard & Data Charts
 
-#### 1. Respondent Cohorts & Fellowship Duration
+| Survey    | Charts    |
+|---------- |---------- |
+|Communication Channels & Repetitive Questions | ![Communication Channels and Question Repetition](public/screenshots/screenshot1.jpg)|
+| Question Hesitation & Barriers | ![Public Question Hesitation and Barriers](public/screenshots/screenshot2.jpg) |
+| Chat History Search Struggles | ![Search Struggles and Intent to Use](public/screenshots/screenshot3.jpg) |
 
-![Fellowship Cohorts and Duration](docs/images/01-cohort-and-tenure.jpg)
-
-#### 2. Communication Channels & Repetitive Questions
-
-![Communication Channels and Question Repetition](docs/images/02-where-fellows-ask-and-repeat-questions.jpg)
-
-#### 3. Question Hesitation & Barriers
-
-![Public Question Hesitation and Barriers](docs/images/04-why-fellows-hold-back.jpg)
-
-#### 4. Chat History Search Struggles
-
-![Search Struggles and Intent to Use](docs/images/03-struggle-finding-answers-and-holding-back.jpg)
-
-#### 5. Desired Topics & Most Valuable Features
-
-![Desired Topics and Priority Features](docs/images/05-likelihood-to-use-and-top-features.jpg)
-
-![Topics Wanted](docs/images/06-topics-wanted.jpg)
-
-#### 6. Volunteer Engagement for Seed Content
-
-![Volunteer Engagement](docs/images/07-volunteers-for-seed-content.jpg)
-
-![Starter Questions](docs/images/08-starter-questions-this-week.jpg)
+---
 
 ## Solution
 
@@ -58,12 +38,17 @@ Study Circle provides a searchable knowledge base where fellows can:
 - Comment on posts
 - Upvote helpful content
 
+---
+
 ## Tech Stack
 
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, App Router
-- **Backend**: Supabase (PostgreSQL, Auth, API)
-- **Database**: PostgreSQL with full-text search, RLS
-- **Validation**: React Hook Form + Zod
+- **Framework:** Next.js 15 with App Router
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS with custom design tokens
+- **Backend:** Supabase (PostgreSQL, Auth, Realtime)
+- **Validation:** React Hook Form + Zod
+
+---
 
 ## Database Design
 
@@ -81,9 +66,23 @@ Study Circle provides a searchable knowledge base where fellows can:
 - Partial unique indexes for one-vote-per-user-per-target
 - RLS on all tables (never disabled)
 
+---
+
 ## Authentication
 
 Supabase Auth with email/password. Profiles auto-created via trigger on `auth.users` insert.
+Authentication credentials (email, hashed password) are stored exclusively in Supabase's managed `auth.users` table, not in our application schema. Our `profiles` table only stores non-sensitive public information. This separation ensures we never handle or store passwords in our application code.
+
+### Authentication Flow
+
+1. User signs up via `supabase.auth.signUp()` → row created in `auth.users`
+2. Database trigger automatically creates matching row in `public.profiles`
+3. User logs in → Supabase returns JWT containing user UUID
+4. JWT stored in secure HTTP-only cookie
+5. Every API request includes JWT → `auth.uid()` extracts user UUID
+6. RLS policies use `auth.uid()` to enforce ownership rules
+
+---
 
 ## Search Strategy
 
@@ -94,6 +93,8 @@ PostgreSQL full-text search using:
 - `ts_rank()` for relevance ordering
 - Combined with tag filtering via `ANY(tags)`
 
+---
+
 ## Security (RLS)
 
 Row Level Security enabled on all tables:
@@ -103,24 +104,57 @@ Row Level Security enabled on all tables:
 - Vote uniqueness enforced at database level
 - Post authors can moderate comments on their posts
 
+---
+
 ## Development Setup
 
-1. Clone the repository
-2. Run `npm install`
-3. Copy `.env.example` to `.env.local` and add Supabase keys
-4. Run `npm run dev`
-5. Apply migrations in `supabase/migrations/` via Supabase SQL Editor
+```bash
+# 1. Clone the repository
+
+git clone https://github.com/iotb-tech/study-circle.git
+cd study-circle
+
+# 2. install dependencies
+
+npm install
+
+# 3. Copy `.env.example` to `.env.local` and add Supabase keys
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# 4. Start dev server
+
+npm run dev
+
+# 5. Apply migrations in `supabase/migrations/` via Supabase SQL Editor
+```
+
+---
 
 ## Team Workflow
 
-- Main branch is protected
+- `main` branch is protected and all development go through `dev` branch
 - Feature branches for all work
 - PRs require review before merge
-- Database changes via migration files
 - Conventional commits (`feat:`, `chore:`, `fix:`, `docs:`)
+
+---
 
 ## Migration Workflow
 
 Database migrations live in `supabase/migrations/`. Apply them via Supabase SQL Editor in order.
 
-`first-schema.sql` — Core tables, indexes, RLS, full-text search
+### Files
+
+- `first-schema.sql` — Core tables, indexes, RLS, full-text search
+- `seed-data.sql` — Development seed data with realistic posts, comments, and votes
+
+Before running `seed-data.sql`:
+
+1. Create 3 test users via the signup page
+2. Get their UUIDs from Supabase → Authentication → Users
+3. Replace `USER_1_ID`, `USER_2_ID`, `USER_3_ID` in the seed file with your actual UUIDs
+4. Replace `'Person A'`, `'Person B'`, `'Person C'` with your actual display names
+5. Run in Supabase SQL Editor
+
+See `supabase/migrations/README.md` for detailed instructions.
