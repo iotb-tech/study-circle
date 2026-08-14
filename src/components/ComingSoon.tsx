@@ -11,8 +11,8 @@ export default function ComingSoon({ title }: ComingSoonProps) {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#f8fafc] px-6 text-center">
-      <Construction size={80} className="mb-6 text-primary-800" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6 text-center">
+      <Construction size={80} className="mb-6 text-primary-700" />
 
       <h1 className="mb-3 text-3xl font-bold text-primary-600">{title}</h1>
 
@@ -25,7 +25,7 @@ export default function ComingSoon({ title }: ComingSoonProps) {
 
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-3 text-white transition hover:bg-primary-800 cursor-pointer"
+        className="flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-3 text-white transition hover:bg-primary-700 cursor-pointer"
       >
         <ArrowLeft size={18} />
         Go Back
