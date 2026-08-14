@@ -1,8 +1,6 @@
-import {
-  forwardRef,
-  type InputHTMLAttributes,
-  type ReactNode,
-} from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import Label from "./Label";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -25,28 +23,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       required,
       ...props
     },
-    ref
+    ref,
   ) => {
     const inputId = id || props.name;
 
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
+          <Label htmlFor={inputId} required={required}>
             {label}
-
-            {required && (
-              <span
-                className="ml-1 text-red-500"
-                aria-hidden="true"
-              >
-                *
-              </span>
-            )}
-          </label>
+          </Label>
         )}
 
         <div className="relative">
@@ -68,15 +54,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                   ? `${inputId}-helper`
                   : undefined
             }
-            className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-60 ${
-              leftIcon ? "pl-10" : ""
-            } ${
-              rightIcon ? "pr-10" : ""
-            } ${
+            className={cn(
+              "w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:ring-2 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:opacity-60",
+              leftIcon ? "pl-10" : "",
+              rightIcon ? "pr-10" : "",
               error
-                ? "border-red-500 focus:border-red-500 focus:ring-red-100"
-                : "border-gray-300 focus:border-gray-500 focus:ring-gray-200"
-            } ${className}`}
+                ? "border-error focus:border-error focus:ring-error/10"
+                : "border-neutral-200 focus:border-primary-500 focus:ring-primary-50",
+              className,
+            )}
             {...props}
           />
 
@@ -96,16 +82,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {error}
           </p>
         ) : helperText ? (
-          <p
-            id={`${inputId}-helper`}
-            className="mt-1.5 text-xs text-gray-500"
-          >
+          <p id={`${inputId}-helper`} className="mt-1.5 text-xs text-gray-500">
             {helperText}
           </p>
         ) : null}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";
