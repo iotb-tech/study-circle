@@ -1,21 +1,16 @@
+// src/components/Signin/Signin.tsx
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { createClient } from "@/lib/supabase/client";
 import Form from "@/components/ui/Form";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-
-const signinSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type SigninFormData = z.infer<typeof signinSchema>;
+import { signinSchema, type SigninFormData } from "@/types/auth";
 
 export default function Signin() {
   const router = useRouter();
@@ -39,7 +34,8 @@ export default function Signin() {
     try {
       setServerError(null);
 
-      const { data: authData, error: authError } =
+      // We don't need authData here — just check for error
+      const { error: authError } =
         await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
@@ -69,6 +65,7 @@ export default function Signin() {
           label="Email Address"
           type="email"
           placeholder="you@example.com"
+          className="py-4"
           error={errors.email?.message}
           required
           {...register("email")}
@@ -78,6 +75,7 @@ export default function Signin() {
           label="Password"
           type="password"
           placeholder="••••••••"
+          className="py-4"
           error={errors.password?.message}
           required
           {...register("password")}
@@ -96,7 +94,7 @@ export default function Signin() {
           type="submit"
           loading={isSubmitting}
           loadingText="Signing in..."
-          className="w-full"
+          className="w-full py-4 text-base cursor-pointer mt-4"
         >
           Sign In
         </Button>

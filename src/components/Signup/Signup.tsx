@@ -1,33 +1,16 @@
+// src/components/Signup/Signup.tsx
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { createClient } from "@/lib/supabase/client";
 import Form from "@/components/ui/Form";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-
-const signupSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(50, "Name must be less than 50 characters"),
-  email: z
-    .string()
-    .email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-    ),
-});
-
-type SignupFormData = z.infer<typeof signupSchema>;
+import { signupSchema, type SignupFormData } from "@/types/auth";
 
 export default function Signup() {
   const router = useRouter();
@@ -52,12 +35,13 @@ export default function Signup() {
     try {
       setServerError(null);
 
+      // Step 1: Create the user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: {
-            display_name: data.name, 
+            display_name: data.name,
           },
         },
       });
@@ -72,6 +56,7 @@ export default function Signup() {
         return;
       }
 
+      // Step 2: Update the profile with the display name
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ display_name: data.name })
@@ -79,8 +64,10 @@ export default function Signup() {
 
       if (profileError) {
         console.error("Profile update error:", profileError);
+        // Don't block signup if profile update fails
       }
 
+      // Step 3: Redirect to dashboard
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
@@ -92,37 +79,36 @@ export default function Signup() {
   return (
     <div className="w-full">
       <Form methods={methods} onSubmit={handleSignup} className="space-y-4">
-        {/* Name field */}
         <Input
           label="Full Name"
-          placeholder="Enter you full name..."
+          className="py-4"
+          placeholder="e.g., Ibrahim Ibrahim"
           error={errors.name?.message}
           required
           {...register("name")}
         />
 
-        {/* Email field */}
         <Input
           label="Email Address"
           type="email"
-          placeholder="name@example.com"
+          placeholder="you@example.com"
+          className="py-4"
           error={errors.email?.message}
           required
           {...register("email")}
         />
 
-        {/* Password field */}
         <Input
           label="Password"
           type="password"
           placeholder="••••••••"
+          className="py-4"
           error={errors.password?.message}
           helperText="At least 8 characters with uppercase, lowercase, and number"
           required
           {...register("password")}
         />
 
-        {/* Server error message */}
         {serverError && (
           <div
             className="rounded-lg bg-error/10 border border-error/20 px-4 py-3 text-sm text-error"
@@ -132,12 +118,11 @@ export default function Signup() {
           </div>
         )}
 
-        {/* Submit button */}
         <Button
           type="submit"
           loading={isSubmitting}
           loadingText="Creating account..."
-          className="w-full"
+          className="w-full py-4 text-base cursor-pointer"
         >
           Create Account
         </Button>
