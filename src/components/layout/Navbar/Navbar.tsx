@@ -1,50 +1,80 @@
-import { clsx, type ClassValue } from 'clsx'; 
-import { twMerge } from 'tailwind-merge'; 
-import { HTMLAttributes } from 'react'; 
- 
-function cn(...inputs: ClassValue[]) { 
-  return twMerge(clsx(inputs)); 
-} 
- 
-type NavbarProps = HTMLAttributes<HTMLElement>; 
- 
-function NavbarRoot({ className, children, ...props }: NavbarProps) { 
-  return ( 
-    <header 
-      className={cn( 
-        'sticky top-0 z-40 flex h-16 w-full items-center gap-4 border-b border-neutral-200 bg-neutral-50 px-4',
-        className, 
-      )} 
-      {...props} 
-    > 
-      {children} 
-    </header> 
-  ); 
-} 
- 
-function NavbarLeft({ className, ...props }: HTMLAttributes<HTMLDivElement>) { 
-  return ( 
-    <div className={cn('flex items-center gap-3', className)} {...props} /> 
-  ); 
-} 
- 
-function NavbarCenter({ className, ...props }: HTMLAttributes<HTMLDivElement>) 
-{ 
-  return ( 
-    <div className={cn('hidden md:flex items-center gap-6', className)} 
-{...props} /> 
-  ); 
-} 
- 
-function NavbarRight({ className, ...props }: HTMLAttributes<HTMLDivElement>) { 
-  return ( 
-    <div className={cn('ml-auto flex items-center gap-3', className)} 
-{...props} /> 
-  ); 
-} 
- 
-export const Navbar = Object.assign(NavbarRoot, { 
-  Left: NavbarLeft, 
-  Center: NavbarCenter, 
-  Right: NavbarRight, 
-}); 
+"use client";
+
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Bell, LogOut } from "lucide-react";
+import MobileSidebar from "../Sidebar/MobileSidebar";
+
+interface NavbarProps {
+  user: {
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+export default function Navbar({ user }: NavbarProps) {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const displayName = user?.display_name || "Fellow";
+  const avatarUrl = user?.avatar_url || null;
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/signin");
+    router.refresh();
+  };
+
+  return (
+    <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6">
+      {/* Mobile hamburger menu */}
+      <MobileSidebar />
+
+      {/* Right items */}
+      <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+        {/* Notification bell */}
+        <button
+          className="relative p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+          aria-label="Notifications"
+        >
+          <Bell size={18} className="text-neutral-600" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full" />
+        </button>
+
+        {/* User info */}
+        <div className="hidden sm:flex items-center gap-3 pl-2 border-l border-neutral-200">
+          {avatarUrl ? (
+            <Image
+              src={avatarUrl}
+              alt={displayName}
+              width={32}
+              height={32}
+              className="rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
+              <span className="text-xs font-medium text-white">{initials}</span>
+            </div>
+          )}
+          <span className="text-sm font-medium text-neutral-900">{displayName}</span>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-600 transition-colors"
+          aria-label="Logout"
+        >
+          <LogOut size={18} />
+        </button>
+      </div>
+    </header>
+  );
+}
