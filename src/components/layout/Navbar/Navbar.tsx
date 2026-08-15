@@ -12,8 +12,7 @@ function NavbarRoot({ className, children, ...props }: NavbarProps) {
   return ( 
     <header 
       className={cn( 
-        'sticky top-0 z-40 flex h-16 w-full items-center gap-4 border-b bg-[#f1dfcc] px-4', 
-        'dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100', 
+        'sticky top-0 z-40 flex h-16 w-full items-center gap-4 border-b border-neutral-200 bg-neutral-50 px-4',
         className, 
       )} 
       {...props} 
