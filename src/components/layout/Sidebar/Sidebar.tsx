@@ -1,59 +1,62 @@
-import { clsx, type ClassValue } from 'clsx'; 
-import { twMerge } from 'tailwind-merge'; 
-import { HTMLAttributes } from 'react'; 
- 
-function cn(...inputs: ClassValue[]) { 
-  return twMerge(clsx(inputs)); 
-} 
- 
-type SidebarProps = HTMLAttributes<HTMLElement>; 
-type SidebarSectionProps = HTMLAttributes<HTMLDivElement>; 
- 
-function SidebarRoot({ className, children, ...props }: SidebarProps) { 
-  return ( 
-    <aside 
-      className={cn( 
-        'flex h-full w-64 shrink-0 flex-col border-r border-neutral-200 bg-white',
-        className, 
-      )} 
-      {...props} 
-    > 
-      {children} 
-    </aside> 
-  ); 
-} 
- 
-function SidebarHeader({ className, children, ...props }: SidebarSectionProps) 
-{ 
-  return ( 
-    <div className={cn('border-b border-slate-200 p-4 dark:border-slate-800', 
-className)} {...props}> 
-      {children} 
-    </div> 
-  ); 
-} 
- 
-function SidebarContent({ className, children, ...props }: SidebarSectionProps) 
-{ 
-  return ( 
-    <div className={cn('flex-1 overflow-y-auto p-4', className)} {...props}> 
-      {children} 
-    </div> 
-  ); 
-} 
- 
-function SidebarFooter({ className, children, ...props }: SidebarSectionProps) 
-{ 
-  return ( 
-    <div className={cn('border-t border-slate-200 p-4 dark:border-slate-800', 
-className)} {...props}> 
-      {children} 
-    </div> 
-  ); 
-} 
- 
-export const Sidebar = Object.assign(SidebarRoot, { 
-  Header: SidebarHeader, 
-  Content: SidebarContent, 
-  Footer: SidebarFooter, 
-}); 
+import Link from "next/link";
+import Image from "next/image";
+import SidebarNav from "./SidebarNav";
+
+interface SidebarProps {
+  user: {
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+export default function Sidebar({ user }: SidebarProps) {
+  const displayName = user?.display_name || "Fellow";
+  const avatarUrl = user?.avatar_url || null;
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <aside className="hidden md:flex md:flex-col w-64 bg-neutral-900">
+      {/* Logo */}
+      <div className="p-6 border-b border-neutral-800">
+        <Link href="/" className="flex items-center">
+          <span className="text-xl font-bold text-white">
+            study<span className="text-primary-500">Circle</span>
+          </span>
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 p-4">
+        <SidebarNav />
+      </div>
+
+      {/* User info */}
+      <div className="p-4 border-t border-neutral-800">
+        <div className="flex items-center gap-3">
+          {avatarUrl ? (
+            <Image
+              src={avatarUrl}
+              alt={displayName}
+              width={36}
+              height={36}
+              className="rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center">
+              <span className="text-sm font-medium text-white">{initials}</span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate">{displayName}</p>
+            <p className="text-xs text-neutral-500">Fellow</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
