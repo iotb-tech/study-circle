@@ -7,6 +7,7 @@ interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   loading?: boolean;
+  loadingText?: string;
   children: React.ReactNode;
 }
 
@@ -14,6 +15,7 @@ export default function Button({
   children,
   variant = "primary",
   loading = false,
+  loadingText = "Loading...",
   disabled,
   className,
   ...props
@@ -49,7 +51,7 @@ export default function Button({
             className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
             aria-hidden="true"
           />
-          Loading...
+          {loadingText}
         </>
       ) : (
         children
