@@ -60,7 +60,7 @@ export default function PostsOverTime({ data }: PostsOverTimeProps) {
             <Line
               type="monotone"
               dataKey="comments"
-              stroke="#3b82f6"
+              stroke="#52525b"
               strokeWidth={2}
               dot={{ r: 3 }}
               name="Comments"

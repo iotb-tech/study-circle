@@ -49,7 +49,7 @@ export default function WeeklyActivity({ data }: WeeklyActivityProps) {
               cursor={{ fill: "#f4f4f5" }}
             />
             <Bar dataKey="posts" fill="#22c55e" radius={[4, 4, 0, 0]} name="Posts" />
-            <Bar dataKey="comments" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Comments" />
+            <Bar dataKey="comments" fill="#52525b" radius={[4, 4, 0, 0]} name="Comments" />
           </BarChart>
         </ResponsiveContainer>
       </div>
