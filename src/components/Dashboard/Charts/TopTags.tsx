@@ -20,13 +20,13 @@ interface TopTagsProps {
 
 const tagColors = [
   "#22c55e",
-  "#3b82f6",
+  "#a1a1aa",
   "#d97706",
-  "#a18072",
+  "#86efac",
   "#dc2626",
-  "#9333ea",
-  "#0891b2",
-  "#ca8a04",
+  "#27272a",
+  "#16a34a",
+  "#16a34a",
 ];
 
 export default function TopTags({ data }: TopTagsProps) {
