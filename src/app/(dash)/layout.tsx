@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import Sidebar from "@/components/layout/Sidebar/Sidebar";
+import Navbar from "@/components/layout/Navbar/Navbar";
 
 export default async function DashLayout({
   children,
@@ -8,21 +10,32 @@ export default async function DashLayout({
 }) {
   const supabase = await createClient();
 
-  // Check authentication on the SERVER
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If not authenticated, redirect to signin
   if (!user) {
     redirect("/signin");
   }
 
+  // Get user profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, display_name, avatar_url")
+    .eq("id", user.id)
+    .single();
+
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* <Sidebar /> */}
-      {/* <Navbar /> */}
-      <main>{children}</main>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar user={profile} />
+
+      <div className="flex-1 flex flex-col overflow-hidden bg-neutral-100">
+        <Navbar user={profile} />
+
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
