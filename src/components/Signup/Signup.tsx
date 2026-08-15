@@ -11,14 +11,22 @@ import Form from "@/components/ui/Form";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { signupSchema, type SignupFormData } from "@/types/auth";
+import Spinner from "../ui/Spinner";
 
 export default function Signup() {
   const router = useRouter();
   const supabase = createClient();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showErrors, setShowErrors] = useState({
+    name: false,
+    email: false,
+    password: false,
+  });
 
   const methods = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: {
       name: "",
       email: "",
@@ -28,14 +36,31 @@ export default function Signup() {
 
   const {
     register,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = methods;
 
+  const handleFieldChange = (field: keyof SignupFormData) => {
+    clearErrors(field);
+    setShowErrors((prev) => ({ ...prev, [field]: false }));
+    setServerError(null);
+  };
+
+  const handleInvalidSubmit = () => {
+    setShowErrors({
+        name: true,
+        email: true,
+        password: true,
+    });
+    };
+
   const handleSignup = async (data: SignupFormData) => {
+    // setShowErrors({ name: true, email: true, password: true });
+
     try {
       setServerError(null);
 
-      // Step 1: Create the user in Supabase Auth
+      // Create the user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -56,7 +81,7 @@ export default function Signup() {
         return;
       }
 
-      // Step 2: Update the profile with the display name
+      // Update the profile with the display name
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ display_name: data.name })
@@ -67,7 +92,7 @@ export default function Signup() {
         // Don't block signup if profile update fails
       }
 
-      // Step 3: Redirect to dashboard
+      // Redirect to dashboard
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
@@ -78,14 +103,16 @@ export default function Signup() {
 
   return (
     <div className="w-full">
-      <Form methods={methods} onSubmit={handleSignup} className="space-y-4">
+      <Form methods={methods} onSubmit={handleSignup} onInvalid={handleInvalidSubmit} className="space-y-4">
         <Input
           label="Full Name"
           className="py-4"
           placeholder="e.g., Ibrahim Ibrahim"
-          error={errors.name?.message}
+          error={showErrors.name ? errors.name?.message : undefined}
           required
-          {...register("name")}
+          {...register("name", {
+            onChange: () => handleFieldChange("name"),
+          })}
         />
 
         <Input
@@ -93,9 +120,11 @@ export default function Signup() {
           type="email"
           placeholder="you@example.com"
           className="py-4"
-          error={errors.email?.message}
+          error={showErrors.email ? errors.email?.message : undefined}
           required
-          {...register("email")}
+          {...register("email", {
+            onChange: () => handleFieldChange("email"),
+          })}
         />
 
         <Input
@@ -103,10 +132,12 @@ export default function Signup() {
           type="password"
           placeholder="••••••••"
           className="py-4"
-          error={errors.password?.message}
+          error={showErrors.password ? errors.password?.message : undefined}
           helperText="At least 8 characters with uppercase, lowercase, and number"
           required
-          {...register("password")}
+          {...register("password", {
+            onChange: () => handleFieldChange("password"),
+          })}
         />
 
         {serverError && (
@@ -124,7 +155,14 @@ export default function Signup() {
           loadingText="Creating account..."
           className="w-full py-4 text-base cursor-pointer"
         >
-          Create Account
+          {isSubmitting ? (
+            <>
+              <Spinner size="sm" className="text-white" />
+              Creating account...
+            </>
+          ) : (
+            "Create Account"
+          )}
         </Button>
       </Form>
     </div>

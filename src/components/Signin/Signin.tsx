@@ -11,14 +11,21 @@ import Form from "@/components/ui/Form";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { signinSchema, type SigninFormData } from "@/types/auth";
+import Spinner from "../ui/Spinner";
 
 export default function Signin() {
   const router = useRouter();
   const supabase = createClient();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showErrors, setShowErrors] = useState({
+    email: false,
+    password: false,
+  });
 
   const methods = useForm<SigninFormData>({
     resolver: zodResolver(signinSchema),
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: {
       email: "",
       password: "",
@@ -27,19 +34,33 @@ export default function Signin() {
 
   const {
     register,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = methods;
 
+  const handleFieldChange = (field: keyof SigninFormData) => {
+    clearErrors(field);
+    setServerError(null);
+    setShowErrors((prev) => ({ ...prev, [field]: false }));
+  };
+
+  const handleInvalidSubmit = () => {
+  setShowErrors({
+    email: true,
+    password: true,
+  });
+};
+
   const handleSignin = async (data: SigninFormData) => {
+    // setShowErrors({ email: true, password: true });
+
     try {
       setServerError(null);
 
-      // We don't need authData here — just check for error
-      const { error: authError } =
-        await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
-        });
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
 
       if (authError) {
         if (authError.message.includes("Invalid login credentials")) {
@@ -60,15 +81,17 @@ export default function Signin() {
 
   return (
     <div className="w-full">
-      <Form methods={methods} onSubmit={handleSignin} className="space-y-4">
+      <Form methods={methods} onSubmit={handleSignin} onInvalid={handleInvalidSubmit} className="space-y-4">
         <Input
           label="Email Address"
           type="email"
           placeholder="you@example.com"
           className="py-4"
-          error={errors.email?.message}
+          error={showErrors.email ? errors.email?.message : undefined}
           required
-          {...register("email")}
+          {...register("email", {
+            onChange: () => handleFieldChange("email"),
+          })}
         />
 
         <Input
@@ -76,9 +99,11 @@ export default function Signin() {
           type="password"
           placeholder="••••••••"
           className="py-4"
-          error={errors.password?.message}
+          error={showErrors.password ? errors.password?.message : undefined}
           required
-          {...register("password")}
+          {...register("password", {
+            onChange: () => handleFieldChange("password"),
+          })}
         />
 
         {serverError && (
@@ -94,9 +119,16 @@ export default function Signin() {
           type="submit"
           loading={isSubmitting}
           loadingText="Signing in..."
-          className="w-full py-4 text-base cursor-pointer mt-4"
+          className="w-full py-4 text-base cursor-pointer"
         >
-          Sign In
+          {isSubmitting ? (
+            <>
+              <Spinner size="sm" className="text-white" />
+              Signing in...
+            </>
+          ) : (
+            "Sign In"
+          )}
         </Button>
       </Form>
     </div>
