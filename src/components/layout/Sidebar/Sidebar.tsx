@@ -13,8 +13,7 @@ function SidebarRoot({ className, children, ...props }: SidebarProps) {
   return ( 
     <aside 
       className={cn( 
-        'flex h-full w-64 shrink-0 flex-col border-r bg-[#f9f3ee]', 
-        'dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100', 
+        'flex h-full w-64 shrink-0 flex-col border-r border-neutral-200 bg-white',
         className, 
       )} 
       {...props} 
