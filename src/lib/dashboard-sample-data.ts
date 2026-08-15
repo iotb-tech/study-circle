@@ -37,9 +37,9 @@ export const weeklyActivityData = [
 ];
 
 export const topContributorsData = [
-  { name: 'Ibrahim', contributions: 25 },
+  { name: 'Ibrahim', contributions: 15 },
   { name: 'Monsurah', contributions: 18 },
-  { name: 'Muhammad', contributions: 15 },
-  { name: 'Alice', contributions: 10 },
-  { name: 'Bob', contributions: 8 },
+  { name: 'Muhammad', contributions: 25 },
+  { name: 'Azeezat', contributions: 8 },
+  { name: 'Mubarak', contributions: 10 },
 ];
