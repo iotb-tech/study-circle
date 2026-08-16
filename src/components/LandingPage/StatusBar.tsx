@@ -23,7 +23,7 @@ export default function StatsBar() {
       <div className="mx-auto max-w-7xl">
         {/* Section heading */}
         <h2 className="font-sans text-2xl font-semibold md:text-3xl">
-          vWhy we&apos;re building this.
+          Why we&apos;re building this.
         </h2>
 
         {/* Stats */}
