@@ -2,13 +2,14 @@
 
 import { useState } from 'react'; 
 import { Menu, X, GraduationCap } from 'lucide-react'; 
+import Link from 'next/link';
  
 const navLinks = [ 
   { label: 'Features', href: '#features' }, 
   { label: 'How It Works', href: '#how-it-works' }, 
   { label: 'Stats Bar', href: '#stats' }, 
   { label: 'Problem Highlights', href: '#problem' }, 
-  { label: 'FAQ', href: '#faq' }, 
+  // { label: 'FAQ', href: '#faq' }, 
 ]; 
  
 export default function LandingHeader() { 
@@ -21,7 +22,9 @@ backdrop-blur">
         {/* Logo */} 
         <a href="#" className="flex items-center gap-2"> 
           <GraduationCap className="h-8 w-8 text-primary-500" aria-hidden="true" /> 
-          <span className="text-lg font-bold text-neutral-900">StudyCircle</span> 
+          <span className="text-lg font-bold text-neutral-900">
+            study<span className="text-primary-500">Circle</span>
+          </span>
         </a> 
  
         {/* Desktop navigation */} 
@@ -40,20 +43,20 @@ transition-colors"
  
         {/* Desktop auth buttons */} 
         <div className="hidden md:flex md:items-center md:gap-3"> 
-          <a 
-            href="#login" 
+          <Link 
+            href="/signin" 
             className="rounded-md px-4 py-2 text-sm font-medium text-neutral-600 
 hover:bg-neutral-100 hover:text-neutral-900 transition-colors" 
           > 
             Log in 
-          </a> 
-          <a 
-            href="#signup" 
+          </Link> 
+          <Link 
+            href="/signup" 
             className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white 
 hover:bg-primary-700 transition-colors" 
           > 
             Sign up 
-          </a> 
+          </Link> 
         </div> 
  
         {/* Mobile hamburger */} 

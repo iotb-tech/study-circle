@@ -19,7 +19,7 @@ const accentStyles = {
   success: 'border-l-success',
   warning: 'border-l-warning',
   error: 'border-l-error',
-  brown: 'border-l-brown-500',
+  brown: 'border-l-primary-700',
 };
 
 export default function KPICard({

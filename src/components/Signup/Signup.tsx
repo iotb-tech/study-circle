@@ -3,7 +3,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +13,6 @@ import { signupSchema, type SignupFormData } from "@/types/auth";
 import Spinner from "../ui/Spinner";
 
 export default function Signup() {
-  const router = useRouter();
   const supabase = createClient();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showErrors, setShowErrors] = useState({
@@ -92,9 +90,10 @@ export default function Signup() {
         // Don't block signup if profile update fails
       }
 
-      // Redirect to dashboard
-      router.push("/dashboard");
-      router.refresh();
+      // window.location.href = "/dashboard";
+      setTimeout(() => {
+      window.location.replace("/dashboard");
+    }, 300);
     } catch (error) {
       console.error("Signup error:", error);
       setServerError("An unexpected error occurred. Please try again.");
@@ -107,7 +106,7 @@ export default function Signup() {
         <Input
           label="Full Name"
           className="py-4"
-          placeholder="e.g., Ibrahim Ibrahim"
+          placeholder="e.g., Enter your full name..."
           error={showErrors.name ? errors.name?.message : undefined}
           required
           {...register("name", {

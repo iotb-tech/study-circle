@@ -1,20 +1,20 @@
 import Link from "next/link";
 
 const productLinks = [
-  { label: "Browse Posts", href: "/posts" },
-  { label: "Ask a Question", href: "/ask" },
+  { label: "Browse Posts", href: "/dashboard" },
+  { label: "Ask a Question", href: "/coming-soon" },
   { label: "Sign In", href: "/signin" },
 ];
 
 const aboutLinks = [
-  { label: "The Problem", href: "/problem" },
-  { label: "How It Works", href: "/how-it-works" },
+  { label: "The Problem", href: "/coming-soon" },
+  { label: "How It Works", href: "/coming-soon" },
 ];
 
 const cohortLinks = [
-  { label: "Contact a Mentor", href: "/contact-mentor" },
-  { label: "Fellowship Home", href: "/fellowship" },
-  { label: "View on GitHub", href: "https://github.com" },
+//   { label: "Contact a Mentor", href: "/contact-mentor" },
+  { label: "Fellowship Home", href: "https://iotbtech.org.ng/" },
+  { label: "View on GitHub", href: "https://github.com/iotb-tech/study-circle" },
 ];
 
 function FooterLinks({
@@ -74,9 +74,11 @@ export default function Footer() {
             <div className="lg:pr-10">
               <Link
                 href="/"
-                className="inline-block text-2xl font-bold tracking-tight text-primary-500 transition-colors duration-200 hover:text-primary-300"
+                className="inline-block text-2xl font-bold tracking-tighter transition-transform duration-300 hover:scale-105"
               >
-                Study Circle
+                <span className="text-4xl font-bold text-white">
+                    study<span className="text-primary-500">Circle</span>
+                </span>
               </Link>
 
               <div className="mt-5 h-1 w-10 rounded-lg bg-primary-500" />
