@@ -93,8 +93,8 @@ export default function Signup() {
       }
 
       // Redirect to dashboard
-      router.push("/dashboard");
       router.refresh();
+      router.push("/dashboard");
     } catch (error) {
       console.error("Signup error:", error);
       setServerError("An unexpected error occurred. Please try again.");

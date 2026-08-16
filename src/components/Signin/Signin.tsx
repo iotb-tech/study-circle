@@ -71,8 +71,8 @@ export default function Signin() {
         return;
       }
 
-      router.push("/dashboard");
       router.refresh();
+      router.push("/dashboard");
     } catch (error) {
       console.error("Signin error:", error);
       setServerError("An unexpected error occurred. Please try again.");
