@@ -90,7 +90,10 @@ export default function Signup() {
         // Don't block signup if profile update fails
       }
 
-      window.location.href = "/dashboard";
+      // window.location.href = "/dashboard";
+      setTimeout(() => {
+      window.location.replace("/dashboard");
+    }, 300);
     } catch (error) {
       console.error("Signup error:", error);
       setServerError("An unexpected error occurred. Please try again.");

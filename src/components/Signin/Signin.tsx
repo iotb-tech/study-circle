@@ -69,7 +69,10 @@ export default function Signin() {
         return;
       }
 
-      window.location.href = "/dashboard";
+      // window.location.href = "/dashboard";
+      setTimeout(() => {
+      window.location.replace("/dashboard");
+    }, 300);
     } catch (error) {
       console.error("Signin error:", error);
       setServerError("An unexpected error occurred. Please try again.");
