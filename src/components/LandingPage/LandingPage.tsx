@@ -2,18 +2,21 @@ import React from 'react'
 import { ProblemHighlights } from './ProblemHighlights'
 import { HowItWorks } from './HowItWorks'
 import StatsBar from './StatusBar'
+import FeatureGrid from './FeatureGrid'
+import FooterSection from './FooterSection'
+import HeroSection from './HeroSection'
 
 const LandingPage = () => {
   return (
     <div>
       
         {/* <HeaderSection /> */}
-        {/* <HeroSection /> */}
+        <HeroSection />
         <ProblemHighlights />
-        {/* <FeatureGrid /> */}
+        <FeatureGrid />
         <HowItWorks />
         <StatsBar />
-        {/* <FooterSection /> */}
+        <FooterSection />
      
     </div>
   )
