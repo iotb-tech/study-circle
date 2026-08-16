@@ -19,7 +19,7 @@ const stats = [
 
 export default function StatsBar() {
   return (
-    <section className="bg-neutral-900 px-6 py-14 text-neutral-50 md:px-10 lg:px-16">
+    <section id="stats" className="bg-neutral-900 px-6 py-14 text-neutral-50 md:px-10 lg:px-16">
       <div className="mx-auto max-w-7xl">
         {/* Section heading */}
         <h2 className="font-sans text-2xl font-semibold md:text-3xl">

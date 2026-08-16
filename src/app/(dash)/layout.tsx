@@ -21,7 +21,6 @@ export default function DashLayout({
     avatar_url: string | null;
   } | null>(null);
 
-  // REPLACE the entire useEffect:
   useEffect(() => {
     const checkAuth = async () => {
       const {
@@ -33,7 +32,6 @@ export default function DashLayout({
         return;
       }
 
-      // Fetch profile for display_name and avatar
       const { data: profile } = await supabase
         .from("profiles")
         .select("id, display_name, avatar_url")

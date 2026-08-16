@@ -106,7 +106,7 @@ export default function Signup() {
         <Input
           label="Full Name"
           className="py-4"
-          placeholder="e.g., Ibrahim Ibrahim"
+          placeholder="e.g., Enter your full name..."
           error={showErrors.name ? errors.name?.message : undefined}
           required
           {...register("name", {

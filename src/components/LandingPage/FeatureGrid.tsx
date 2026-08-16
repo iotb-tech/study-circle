@@ -32,7 +32,7 @@ const features: { icon: LucideIcon; title: string; description: string }[] = [
  
 export default function FeaturesGrid() { 
   return ( 
-    <section className="py-16"> 
+    <section id="features" className="py-16"> 
       <div className=" mx-auto max-w-7xl px-4 bg-primary-300"> 
         <h2 className="mt-12 text-center text-3xl font-bold text-neutral-900"> 
           Everything you need to stop repeating yourself... 

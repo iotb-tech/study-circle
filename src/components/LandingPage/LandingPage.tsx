@@ -5,12 +5,13 @@ import StatsBar from './StatusBar'
 import FeatureGrid from './FeatureGrid'
 import FooterSection from './FooterSection'
 import HeroSection from './HeroSection'
+import HeaderSection from './HeaderSection'
 
 const LandingPage = () => {
   return (
     <div>
       
-        {/* <HeaderSection /> */}
+        <HeaderSection />
         <HeroSection />
         <ProblemHighlights />
         <FeatureGrid />
