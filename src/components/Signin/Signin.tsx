@@ -3,7 +3,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +13,6 @@ import { signinSchema, type SigninFormData } from "@/types/auth";
 import Spinner from "../ui/Spinner";
 
 export default function Signin() {
-  const router = useRouter();
   const supabase = createClient();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showErrors, setShowErrors] = useState({
@@ -45,11 +43,11 @@ export default function Signin() {
   };
 
   const handleInvalidSubmit = () => {
-  setShowErrors({
-    email: true,
-    password: true,
-  });
-};
+    setShowErrors({
+      email: true,
+      password: true,
+    });
+  };
 
   const handleSignin = async (data: SigninFormData) => {
     // setShowErrors({ email: true, password: true });
@@ -71,8 +69,7 @@ export default function Signin() {
         return;
       }
 
-      router.refresh();
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Signin error:", error);
       setServerError("An unexpected error occurred. Please try again.");
@@ -81,7 +78,12 @@ export default function Signin() {
 
   return (
     <div className="w-full">
-      <Form methods={methods} onSubmit={handleSignin} onInvalid={handleInvalidSubmit} className="space-y-4">
+      <Form
+        methods={methods}
+        onSubmit={handleSignin}
+        onInvalid={handleInvalidSubmit}
+        className="space-y-4"
+      >
         <Input
           label="Email Address"
           type="email"
