@@ -17,7 +17,7 @@ export default function HeroSection() {
           </h1>
           <p className="mt-5 text-base leading-relaxed text-neutral-600 md:text-lg">
             Study Circle turns your cohort&apos;s questions into a searchable
-            knowledge base — so nobody re-asks, nobody re-explains, and
+            knowledge base. Nobody re-asks, nobody re-explains, and
             nobody&apos;s afraid to ask.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
