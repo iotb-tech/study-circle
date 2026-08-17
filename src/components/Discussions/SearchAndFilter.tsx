@@ -41,6 +41,26 @@ export default function SearchAndFilter({
           </button>
         )}
       </div>
+
+      {selectedTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {selectedTags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 text-primary-700 text-xs font-medium"
+            >
+              {tag}
+              <button
+                onClick={() => onTagRemove(tag)}
+                className="hover:text-primary-900 transition-colors cursor-pointer"
+                aria-label={`Remove ${tag} filter`}
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
