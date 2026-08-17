@@ -31,6 +31,15 @@ export default function SearchAndFilter({
           placeholder="Search posts by title or body content..."
           className="w-full rounded-lg border border-neutral-200 bg-white pl-10 pr-4 py-3 text-sm placeholder:text-neutral-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50"
         />
+        {searchQuery && (
+          <button
+            onClick={() => onSearchChange("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+            aria-label="Clear search"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
     </div>
   );
