@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import Form from "@/components/ui/Form";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
@@ -12,6 +12,20 @@ import { postSchema, type PostFormData } from "@/types/post";
 
 export default function CreatePostForm() {
   const [showForm, setShowForm] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+
+  const addTag = () => {
+    const trimmed = tagInput.trim().toLowerCase();
+    if (trimmed && !tags.includes(trimmed) && tags.length < 5) {
+      setTags([...tags, trimmed]);
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
 
   const methods = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
@@ -61,6 +75,51 @@ export default function CreatePostForm() {
           className="min-h-[150px]"
           {...register("body")}
         />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-neutral-800">
+            Tags
+          </label>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add tag (e.g., react)"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addTag();
+                }
+              }}
+            />
+            <Button
+              className="cursor-pointer"
+              type="button"
+              variant="secondary"
+              onClick={addTag}
+            >
+              Add
+            </Button>
+          </div>
+          {tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="cursor-pointer hover:text-primary-900"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <Button
           type="button"
           variant="secondary"
