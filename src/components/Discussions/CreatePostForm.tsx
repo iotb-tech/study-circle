@@ -1,11 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
+import Form from "@/components/ui/Form";
+import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { postSchema, type PostFormData } from "@/types/post";
 
 export default function CreatePostForm() {
   const [showForm, setShowForm] = useState(false);
+
+  const methods = useForm<PostFormData>({
+    resolver: zodResolver(postSchema),
+    defaultValues: { title: "", body: "" },
+  });
+
+  const {
+    register,
+    formState: { errors },
+  } = methods;
+
+  const onSubmit = (data: PostFormData) => {
+    void data;
+  };
 
   if (!showForm) {
     return (
@@ -25,14 +44,23 @@ export default function CreatePostForm() {
       <h2 className="mb-4 text-lg font-semibold text-neutral-900">
         Create New Post
       </h2>
-      <Button
-        type="button"
-        variant="secondary"
-        className="cursor-pointer"
-        onClick={() => setShowForm(false)}
-      >
-        Cancel
-      </Button>
+      <Form methods={methods} onSubmit={onSubmit} className="space-y-4">
+        <Input
+          label="Title"
+          placeholder="e.g., How do I use async/await in useEffect?"
+          error={errors.title?.message}
+          required
+          {...register("title")}
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          className="cursor-pointer"
+          onClick={() => setShowForm(false)}
+        >
+          Cancel
+        </Button>
+      </Form>
     </div>
   );
 }
