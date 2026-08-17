@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import Form from "@/components/ui/Form";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
@@ -11,9 +13,12 @@ import Button from "@/components/ui/Button";
 import { postSchema, type PostFormData } from "@/types/post";
 
 export default function CreatePostForm() {
+  const router = useRouter();
+  const supabase = createClient();
   const [showForm, setShowForm] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const addTag = () => {
     const trimmed = tagInput.trim().toLowerCase();
@@ -34,11 +39,54 @@ export default function CreatePostForm() {
 
   const {
     register,
-    formState: { errors },
+    reset,
+    formState: { errors, isSubmitting },
   } = methods;
 
-  const onSubmit = (data: PostFormData) => {
-    void data;
+  const closeForm = () => {
+    reset();
+    setTags([]);
+    setTagInput("");
+    setServerError(null);
+    setShowForm(false);
+  };
+
+  const onSubmit = async (data: PostFormData) => {
+    try {
+      setServerError(null);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setServerError("You must be signed in to create a post.");
+        return;
+      }
+
+      const { data: post, error } = await supabase
+        .from("posts")
+        .insert({
+          user_id: user.id,
+          title: data.title,
+          body: data.body,
+          tags,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        setServerError(error.message);
+        return;
+      }
+
+      closeForm();
+      router.push(`/discussions/${post.id}`);
+      router.refresh();
+    } catch (error) {
+      console.error("Create post error:", error);
+      setServerError("An unexpected error occurred.");
+    }
   };
 
   if (!showForm) {
@@ -120,14 +168,31 @@ export default function CreatePostForm() {
             </div>
           )}
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          className="cursor-pointer"
-          onClick={() => setShowForm(false)}
-        >
-          Cancel
-        </Button>
+
+        {serverError && (
+          <div className="rounded-lg border border-error/20 bg-error/10 px-4 py-3 text-sm text-error">
+            {serverError}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button
+            type="submit"
+            loading={isSubmitting}
+            loadingText="Creating post..."
+            className="flex-1 cursor-pointer py-3"
+          >
+            Submit Post
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="cursor-pointer"
+            onClick={closeForm}
+          >
+            Cancel
+          </Button>
+        </div>
       </Form>
     </div>
   );

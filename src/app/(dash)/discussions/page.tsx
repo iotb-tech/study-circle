@@ -1,11 +1,10 @@
-import ComingSoon from '@/components/ComingSoon'
+import CreatePostForm from "@/components/Discussions/CreatePostForm";
 
-const page = () => {
+export default function DiscussionsPage() {
   return (
-    <div>
-      <ComingSoon title="Discussions" />
+    <div className="mx-auto max-w-3xl">
+      <h1 className="mb-6 text-2xl font-bold text-neutral-900">Discussions</h1>
+      <CreatePostForm />
     </div>
-  )
+  );
 }
-
-export default page
