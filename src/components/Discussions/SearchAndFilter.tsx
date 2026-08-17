@@ -19,6 +19,7 @@ export default function SearchAndFilter({
 }: SearchAndFilterProps) {
   return (
     <div className="space-y-3">
+      {/* Search input */}
       <div className="relative">
         <Search
           size={18}
@@ -42,6 +43,7 @@ export default function SearchAndFilter({
         )}
       </div>
 
+      {/* Selected tags */}
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           {selectedTags.map((tag) => (
@@ -59,6 +61,12 @@ export default function SearchAndFilter({
               </button>
             </span>
           ))}
+          <button
+            onClick={onClearAllTags}
+            className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+          >
+            Clear all
+          </button>
         </div>
       )}
     </div>
