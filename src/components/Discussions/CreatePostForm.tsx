@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import Form from "@/components/ui/Form";
 import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
 import { postSchema, type PostFormData } from "@/types/post";
 
@@ -51,6 +52,14 @@ export default function CreatePostForm() {
           error={errors.title?.message}
           required
           {...register("title")}
+        />
+        <Textarea
+          label="Body"
+          placeholder="Describe your question in detail..."
+          error={errors.body?.message}
+          required
+          className="min-h-[150px]"
+          {...register("body")}
         />
         <Button
           type="button"
