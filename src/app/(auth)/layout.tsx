@@ -23,9 +23,11 @@ export default function AuthLayout({
         <div className="z-10 mb-6 bg-primary-300 rounded-full flex flex-col items-center justify-center text-center">
           <Image
             src="/assets/study-circle.png"
-            alt="A descriptive caption"
+            alt="Study Circle Logo"
             width={190}
-            height={108}
+            height={190}
+            style={{ width: "auto", height: "auto" }}
+            priority
           />
         </div>
 
@@ -52,19 +54,23 @@ export default function AuthLayout({
             </Link>
             <Image
               src="/assets/study-circle.png"
-              alt="A descriptive caption"
+              alt="Study Circle Logo"
               width={100}
-              height={80}
+              height={100}
               className="mt-2"
+              style={{ width: "auto", height: "auto" }}
+              priority
             />
           </div>
           
           <div className="hidden md:flex w-full flex items-center justify-center mb-4">
             <Image
               src="/assets/study-circle.png"
-              alt="A descriptive caption"
+              alt="Study Circle Logo"
               width={140}
-              height={100}
+              height={140}
+              style={{ width: "auto", height: "auto" }}
+              priority
             />
           </div>
 
