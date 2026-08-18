@@ -195,7 +195,7 @@ export default function PostDetailPage() {
         className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 mb-6 cursor-pointer"
       >
         <ArrowLeft size={16} />
-        Back to Discussions
+        Go Back
       </button>
 
       {/* Post */}

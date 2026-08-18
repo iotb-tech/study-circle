@@ -33,7 +33,7 @@ export default function Navbar({ user }: NavbarProps) {
   };
 
   return (
-    <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6">
+    <header className="flex h-16 items-center gap-4 bg-primary-100 border-b border-primary-600/70 px-4 sm:px-6">
       {/* Mobile hamburger menu */}
       <MobileSidebar />
 
