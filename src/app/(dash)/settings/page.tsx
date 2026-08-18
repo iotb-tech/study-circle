@@ -3,6 +3,50 @@
 import { useEffect, useState } from "react";
 const [displayName, setDisplayName] = useState("");
 const [savedName, setSavedName] = useState("");
+type NotificationSettings = {
+  replies: boolean;
+  mentions: boolean;
+  questionActivity: boolean;
+};
+const [notifications, setNotifications] =
+  useState<NotificationSettings>({
+    replies: true,
+    mentions: true,
+    questionActivity: false,
+  });
+
+useEffect(() => {
+  const storedNotifications =
+    localStorage.getItem("notificationSettings");
+
+  if (storedNotifications) {
+    try {
+      setNotifications(JSON.parse(storedNotifications));
+    } catch {
+      console.error(
+        "Unable to load notification settings."
+      );
+    }
+  }
+}, []);
+
+const handleNotificationChange = (
+  setting: keyof NotificationSettings
+) => {
+  setNotifications((current) => {
+    const updatedSettings = {
+      ...current,
+      [setting]: !current[setting],
+    };
+
+    localStorage.setItem(
+      "notificationSettings",
+      JSON.stringify(updatedSettings)
+    );
+
+    return updatedSettings;
+  });
+};
 
 useEffect(() => {
   const storedName = localStorage.getItem("displayName");
@@ -257,7 +301,32 @@ export default function SettingsPage() {
             >
               <div className="overflow-hidden">
                 <div className="border-t border-neutral-200 px-4 py-5 dark:border-neutral-700 sm:px-5">
-                  Notification settings will go here.
+                  <NotificationToggle
+  title="Replies to my posts"
+  description="Get notified when someone replies to your post."
+  checked={notifications.replies}
+  onChange={() =>
+    handleNotificationChange("replies")
+  }
+/>
+
+<NotificationToggle
+  title="Mentions"
+  description="Get notified when someone mentions you."
+  checked={notifications.mentions}
+  onChange={() =>
+    handleNotificationChange("mentions")
+  }
+/>
+
+<NotificationToggle
+  title="Question activity"
+  description="Get notified about activity on questions you're following."
+  checked={notifications.questionActivity}
+  onChange={() =>
+    handleNotificationChange("questionActivity")
+  }
+/>
                 </div>
               </div>
             </div>
@@ -271,5 +340,49 @@ export default function SettingsPage() {
         </section>
       </div>
     </main>
+  );
+} type NotificationToggleProps = {
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: () => void;
+};
+
+function NotificationToggle({
+  title,
+  description,
+  checked,
+  onChange,
+}: NotificationToggleProps) {
+  return (
+    <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
+      <div className="min-w-0">
+        <p className="text-sm font-medium">{title}</p>
+
+        <p className="mt-1 text-xs leading-5 text-neutral-600 dark:text-neutral-400">
+          {description}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={onChange}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+          checked
+            ? "bg-primary-500"
+            : "bg-neutral-300 dark:bg-neutral-600"
+        }`}
+      >
+        <span
+          className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+            checked
+              ? "translate-x-6"
+              : "translate-x-1"
+          }`}
+        />
+      </button>
+    </div>
   );
 }
