@@ -4,10 +4,20 @@ import SidebarNav from "./SidebarNav";
 
 interface SidebarProps {
   user: {
-    display_name: string | null;
-    avatar_url: string | null;
+    id: string;
+    email?: string;
+    display_name?: string | null;
+    avatar_url?: string | null;
+    role?: "fellow" | "mentor" | "admin";
+    bio?: string | null;
   } | null;
 }
+
+const roleStyles = {
+  fellow: "bg-neutral-100 text-neutral-600",
+  mentor: "bg-primary-100 text-primary-700",
+  admin: "bg-warning/10 text-warning",
+};
 
 export default function Sidebar({ user }: SidebarProps) {
   const displayName = user?.display_name || "Fellow";
@@ -52,8 +62,14 @@ export default function Sidebar({ user }: SidebarProps) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{displayName}</p>
-            <p className="text-xs text-neutral-500">Fellow</p>
+            <p className="text-sm font-medium text-white truncate">
+              {displayName}
+            </p>
+            <span
+              className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[user?.role || "fellow"]}`}
+            >
+              {user?.role || "fellow"}
+            </span>
           </div>
         </div>
       </div>
