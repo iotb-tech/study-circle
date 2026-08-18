@@ -17,6 +17,8 @@ This folder contains SQL migration files for the Study Circle database.
 | `02_seed_data.sql` | Development seed data (posts, comments, votes) | Run second |
 | `03_avaatrs_bucket.sql` | Creating a bucket in Supabase storage to store the user profile picture |
 | `04_user_roles_and_bio.sql` | Add role (fellow/mentor/admin), bio, and notifications | Run fourth |
+| `05_fix_notifications_rls.sql` | Fix notifications RLS for cross-user notifications | Run fifth |
+| `06_admin_update_policy.sql` | Allow admins to update any profile | Run sixth |
 
 ## About the schema
 
