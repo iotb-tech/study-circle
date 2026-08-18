@@ -94,7 +94,7 @@ export default function CreatePostForm() {
       <button
         type="button"
         onClick={() => setShowForm(true)}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-white py-4 text-neutral-500 transition-colors hover:border-primary-500 hover:text-primary-600"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-neutral-300 bg-primary-600/80 py-4 text-white transition-colors hover:bg-neutral-200 hover:border-primary-700 hover:text-primary-600"
       >
         <Plus size={18} />
         Create New Post
@@ -103,7 +103,7 @@ export default function CreatePostForm() {
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-neutral-200 bg-primary-100 p-6 shadow-sm">
       <h2 className="mb-4 text-lg font-semibold text-neutral-900">
         Create New Post
       </h2>

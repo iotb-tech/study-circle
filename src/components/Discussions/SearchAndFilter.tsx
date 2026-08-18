@@ -30,7 +30,7 @@ export default function SearchAndFilter({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search posts by title or body content..."
-          className="w-full rounded-lg border border-neutral-200 bg-white pl-10 pr-4 py-3 text-sm placeholder:text-neutral-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50"
+          className="w-full rounded-lg border border-neutral-200 bg-primary-100 pl-10 pr-4 py-3 text-sm placeholder:text-neutral-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50"
         />
         {searchQuery && (
           <button
