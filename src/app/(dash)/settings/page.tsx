@@ -23,6 +23,35 @@ const handleSaveName = () => {
   setSavedName(trimmedName);
 };
 type Section = "profile" | "appearance" | "notifications" | null;
+type Theme = "light" | "dark";
+const [theme, setTheme] = useState<Theme>("light");
+
+useEffect(() => {
+  const storedTheme = localStorage.getItem("theme") as Theme | null;
+
+  if (storedTheme === "light" || storedTheme === "dark") {
+    setTheme(storedTheme);
+    applyTheme(storedTheme);
+  } else {
+    applyTheme("light");
+  }
+}, []);
+
+const applyTheme = (selectedTheme: Theme) => {
+  const root = document.documentElement;
+
+  if (selectedTheme === "dark") {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
+};
+
+const handleThemeChange = (selectedTheme: Theme) => {
+  setTheme(selectedTheme);
+  localStorage.setItem("theme", selectedTheme);
+  applyTheme(selectedTheme);
+};
 
 export default function SettingsPage() {
   const [openSection, setOpenSection] = useState<Section>(null);
@@ -147,7 +176,49 @@ export default function SettingsPage() {
             >
               <div className="overflow-hidden">
                 <div className="border-t border-neutral-200 px-4 py-5 dark:border-neutral-700 sm:px-5">
-                  Appearance settings will go here.
+                  <p className="mb-4 text-sm font-medium">
+  Theme
+</p>
+
+<div className="space-y-2">
+  {/* Light */}
+  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3 transition hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-700 sm:p-4">
+    <input
+      type="radio"
+      name="theme"
+      value="light"
+      checked={theme === "light"}
+      onChange={() => handleThemeChange("light")}
+      className="h-4 w-4 accent-primary-500"
+    />
+
+    <div>
+      <p className="text-sm font-medium">Light</p>
+      <p className="text-xs text-neutral-600 dark:text-neutral-400">
+        Use the light theme.
+      </p>
+    </div>
+  </label>
+
+  {/* Dark */}
+  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3 transition hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-700 sm:p-4">
+    <input
+      type="radio"
+      name="theme"
+      value="dark"
+      checked={theme === "dark"}
+      onChange={() => handleThemeChange("dark")}
+      className="h-4 w-4 accent-primary-500"
+    />
+
+    <div>
+      <p className="text-sm font-medium">Dark</p>
+      <p className="text-xs text-neutral-600 dark:text-neutral-400">
+        Use the dark theme.
+      </p>
+    </div>
+  </label>
+</div>
                 </div>
               </div>
             </div>
