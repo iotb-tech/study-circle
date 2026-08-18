@@ -69,6 +69,33 @@ export default function Navbar({ user }: NavbarProps) {
     .toUpperCase()
     .slice(0, 2);
 
+  const markAsRead = async (notificationId: string) => {
+    const { error } = await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("id", notificationId);
+
+    if (!error) {
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("user_id", user.id)
+      .eq("read", false);
+
+    if (!error) {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  };
+
   return (
     <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6">
       <MobileSidebar />
@@ -132,13 +159,23 @@ export default function Navbar({ user }: NavbarProps) {
               <h3 className="text-lg font-semibold text-neutral-900">
                 Notifications
               </h3>
-              <button
-                onClick={() => setShowNotificationModal(false)}
-                className="p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
-                aria-label="Close notifications"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-3">
+                {notifications.length > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-xs font-medium text-primary-600 hover:text-primary-700 cursor-pointer"
+                  >
+                    Mark all as read
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowNotificationModal(false)}
+                  className="p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+                  aria-label="Close notifications"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Modal body - scrollable */}
@@ -164,12 +201,26 @@ export default function Navbar({ user }: NavbarProps) {
                           : "bg-white"
                       }`}
                     >
-                      <p className="text-sm text-neutral-700">
-                        {notification.content}
-                      </p>
-                      <p className="text-xs text-neutral-400 mt-1">
-                        {new Date(notification.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <p className="text-sm text-neutral-700">
+                            {notification.content}
+                          </p>
+                          <p className="text-xs text-neutral-400 mt-1">
+                            {new Date(
+                              notification.created_at,
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <button
+                            onClick={() => markAsRead(notification.id)}
+                            className="text-xs font-medium text-primary-600 hover:text-primary-700 shrink-0 cursor-pointer"
+                          >
+                            Mark as read
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
