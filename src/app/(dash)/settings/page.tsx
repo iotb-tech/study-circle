@@ -16,7 +16,6 @@ export default function SettingsPage() {
   return (
     <main className="min-h-screen bg-white text-neutral-900 dark:bg-neutral-900 dark:text-white">
       <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        {/* Header */}
         <header className="mb-8 sm:mb-10">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Settings
@@ -33,7 +32,8 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => toggleSection("profile")}
-              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-neutral-50 dark:hover:bg-neutral-700 sm:px-5 sm:py-5"
+              aria-expanded={openSection === "profile"}
+              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:hover:bg-neutral-700 sm:px-5 sm:py-5"
             >
               <div>
                 <h2 className="font-medium">Profile</h2>
@@ -42,10 +42,28 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <span className="text-xl text-neutral-400">
+              <span
+                className={`text-xl text-neutral-400 transition-transform duration-200 ${
+                  openSection === "profile" ? "rotate-90" : ""
+                }`}
+              >
                 ›
               </span>
             </button>
+
+            <div
+              className={`grid transition-[grid-template-rows] duration-300 ${
+                openSection === "profile"
+                  ? "grid-rows-[1fr]"
+                  : "grid-rows-[0fr]"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="border-t border-neutral-200 px-4 py-5 dark:border-neutral-700 sm:px-5">
+                  Profile settings will go here.
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Appearance */}
@@ -53,7 +71,8 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => toggleSection("appearance")}
-              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-neutral-50 dark:hover:bg-neutral-700 sm:px-5 sm:py-5"
+              aria-expanded={openSection === "appearance"}
+              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:hover:bg-neutral-700 sm:px-5 sm:py-5"
             >
               <div>
                 <h2 className="font-medium">Appearance</h2>
@@ -62,10 +81,28 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <span className="text-xl text-neutral-400">
+              <span
+                className={`text-xl text-neutral-400 transition-transform duration-200 ${
+                  openSection === "appearance" ? "rotate-90" : ""
+                }`}
+              >
                 ›
               </span>
             </button>
+
+            <div
+              className={`grid transition-[grid-template-rows] duration-300 ${
+                openSection === "appearance"
+                  ? "grid-rows-[1fr]"
+                  : "grid-rows-[0fr]"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="border-t border-neutral-200 px-4 py-5 dark:border-neutral-700 sm:px-5">
+                  Appearance settings will go here.
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Notifications */}
@@ -73,7 +110,8 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => toggleSection("notifications")}
-              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-neutral-50 dark:hover:bg-neutral-700 sm:px-5 sm:py-5"
+              aria-expanded={openSection === "notifications"}
+              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:hover:bg-neutral-700 sm:px-5 sm:py-5"
             >
               <div>
                 <h2 className="font-medium">Notifications</h2>
@@ -82,14 +120,31 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <span className="text-xl text-neutral-400">
+              <span
+                className={`text-xl text-neutral-400 transition-transform duration-200 ${
+                  openSection === "notifications" ? "rotate-90" : ""
+                }`}
+              >
                 ›
               </span>
             </button>
+
+            <div
+              className={`grid transition-[grid-template-rows] duration-300 ${
+                openSection === "notifications"
+                  ? "grid-rows-[1fr]"
+                  : "grid-rows-[0fr]"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="border-t border-neutral-200 px-4 py-5 dark:border-neutral-700 sm:px-5">
+                  Notification settings will go here.
+                </div>
+              </div>
+            </div>
           </section>
         </div>
 
-        {/* Sign out */}
         <section className="mt-8 border-t border-neutral-200 pt-6 dark:border-neutral-800">
           <button className="text-sm font-medium text-error hover:underline">
             Sign out
