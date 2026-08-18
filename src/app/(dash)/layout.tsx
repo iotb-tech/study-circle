@@ -6,6 +6,15 @@ import { createClient } from "@/lib/supabase/client";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 import Navbar from "@/components/layout/Navbar/Navbar";
 
+interface UserProfile {
+  id: string;
+  email?: string;
+  display_name?: string | null;
+  avatar_url?: string | null;
+  role?: "fellow" | "mentor" | "admin";
+  bio?: string | null;
+}
+
 export default function DashLayout({
   children,
 }: {
@@ -14,12 +23,7 @@ export default function DashLayout({
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{
-    id: string;
-    email?: string;
-    display_name: string | null;
-    avatar_url: string | null;
-  } | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,7 +38,7 @@ export default function DashLayout({
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, display_name, avatar_url")
+        .select("id, display_name, avatar_url, role, bio")
         .eq("id", user.id)
         .single();
 
@@ -43,6 +47,8 @@ export default function DashLayout({
         email: user.email,
         display_name: profile?.display_name || null,
         avatar_url: profile?.avatar_url || null,
+        role: profile?.role || "fellow",
+        bio: profile?.bio || null,
       });
       setLoading(false);
     };
