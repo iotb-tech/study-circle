@@ -12,9 +12,10 @@ interface PostCardProps {
     body: string;
     tags: string[];
     created_at: string;
-    profiles?: {
+    profiles: {
       display_name: string | null;
       avatar_url: string | null;
+      role?: "fellow" | "mentor" | "admin";
     } | null;
     comments_count?: Array<{ count: number }>;
     votes_count?: Array<{ count: number }>;
@@ -51,9 +52,7 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
       )}
     >
       {/* Title */}
-      <h3
-        className="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2"
-      >
+      <h3 className="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2">
         {post.title}
       </h3>
 
@@ -82,18 +81,26 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
       )}
 
       {/* Footer: Author, date, stats */}
-      <div
-        className="flex items-center justify-between text-xs text-neutral-400 border-t border-neutral-100 pt-3"
-      >
+      <div className="flex items-center justify-between text-xs text-neutral-400 border-t border-neutral-100 pt-3">
         <div className="flex items-center gap-2">
-          <div
-            className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center"
-          >
+          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
             <span className="text-xs font-medium text-primary-700">
               {initials}
             </span>
           </div>
           <span className="text-neutral-600 font-medium">{displayName}</span>
+
+          {post.profiles?.role === "mentor" && (
+            <span className="px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 text-xs font-medium">
+              Mentor
+            </span>
+          )}
+          {post.profiles?.role === "admin" && (
+            <span className="px-2 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
+              Admin
+            </span>
+          )}
+
           <span>·</span>
           <span>{new Date(post.created_at).toLocaleDateString()}</span>
         </div>
