@@ -23,6 +23,10 @@ export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [message, setMessage] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -80,16 +84,70 @@ export default function AdminPage() {
 
   const pagination = usePagination(filteredUsers, { pageSize: 10 });
 
-  const handleRoleChange = async (userId: string, newRole: UserRole) => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ role: newRole })
-      .eq("id", userId);
+  const handleRoleChange = async (
+    userId: string,
+    newRole: UserRole,
+    userEmail?: string,
+  ) => {
+    try {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ role: newRole })
+        .eq("id", userId);
 
-    if (!error) {
+      if (updateError) {
+        console.error("Role update error:", updateError);
+        alert(`Failed to update role: ${updateError.message}`);
+        return;
+      }
+
+      // Update local state
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
       );
+
+      // If changing to mentor (approving request), notify the user
+      if (newRole === "mentor") {
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert({
+            user_id: userId,
+            type: "role_approved",
+            content:
+              "Your mentor status request has been approved! You are now a mentor.",
+          });
+
+        if (notifError) {
+          console.error("Notification error:", notifError);
+        }
+      }
+
+      // If changing to admin
+      if (newRole === "admin") {
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert({
+            user_id: userId,
+            type: "role_approved",
+            content: "You have been granted admin privileges.",
+          });
+
+        if (notifError) {
+          console.error("Notification error:", notifError);
+        }
+      }
+
+      // Show success feedback
+      setMessage({ text: `Role updated to ${newRole}`, type: "success" });
+
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Failed to update role:", error);
+      setMessage({
+        text: "Failed to update role. Please try again.",
+        type: "error",
+      });
     }
   };
 
@@ -122,6 +180,18 @@ export default function AdminPage() {
           Manage user roles and permissions
         </p>
       </div>
+
+      {message && (
+        <div
+          className={`rounded-lg px-4 py-3 text-sm font-medium ${
+            message.type === "success"
+              ? "bg-success/10 border border-success/20 text-success"
+              : "bg-error/10 border border-error/20 text-error"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
       <div className="rounded-lg border border-neutral-200 bg-neutral-100 shadow-sm">
         {/* Search bar */}
@@ -180,7 +250,11 @@ export default function AdminPage() {
                 <select
                   value={user.role}
                   onChange={(e) =>
-                    handleRoleChange(user.id, e.target.value as UserRole)
+                    handleRoleChange(
+                      user.id,
+                      e.target.value as UserRole,
+                      user.email,
+                    )
                   }
                   className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:outline-none focus:border-primary-500 cursor-pointer"
                 >
