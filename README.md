@@ -148,6 +148,7 @@ Database migrations live in `supabase/migrations/`. Apply them via Supabase SQL 
 
 - `first-schema.sql` — Core tables, indexes, RLS, full-text search
 - `seed-data.sql` — Development seed data with realistic posts, comments, and votes
+- `03_avatars_bucket` Creating a storage bucket in Supabase to store the user's profile image
 
 Before running `seed-data.sql`:
 
