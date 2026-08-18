@@ -15,6 +15,7 @@ This folder contains SQL migration files for the Study Circle database.
 |------|-------------|
 | `first-schema.sql` | Core tables, indexes, RLS, search |
 | `seed-data.sql` | Development seed data (posts, comments, votes) | Run second |
+| `03_avaatrs_bucket.sql` | Creating a bucket in Supabase storage to store the user profile picture |
 
 ## About the schema
 
@@ -60,6 +61,14 @@ The `seed-data.sql` file populates the database with test data: 3 users, 6 reali
    - Search `Person A` → Replace with first user's name
    - Search `Person B` → Replace with second user's name
    - Search `Person C` → Replace with third user's name
+
+## Image Bucket Instructions
+
+1. It is required to copy the schema file named 03_avatars_bucket and paste it in the SQL Editor in Supabase and t `Run`
+
+2. After a few seconds, you should see a message of `Succesful. No rows returned`
+
+3. To confirm, in your project dashboard in Supabase, click on `storage` to see that a bucket has been created for storing the image.
 
 ## Creating new migrations
 
