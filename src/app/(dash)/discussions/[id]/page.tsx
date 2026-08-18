@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
+import { ArrowLeft, ThumbsUp, MessageSquare } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Comment {
   id: string;
@@ -101,9 +102,228 @@ export default function PostDetailPage() {
 
     setLoading(false);
   };
+
+  const handleVoteOnPost = async () => {
+    if (!currentUserId) return;
+
+    // Check if user already voted on this post
+    const { data: existingVote } = await supabase
+      .from("votes")
+      .select("id")
+      .eq("post_id", postId)
+      .eq("user_id", currentUserId)
+      .single();
+
+    if (existingVote) {
+      // Remove vote
+      await supabase.from("votes").delete().eq("id", existingVote.id);
+      setHasVotedOnPost(false);
+    } else {
+      // Add vote
+      await supabase.from("votes").insert({
+        user_id: currentUserId,
+        post_id: postId,
+        value: 1,
+      });
+      setHasVotedOnPost(true);
+    }
+
+    fetchPost();
+  };
+
+  const handleVoteOnComment = async (commentId: string) => {
+    if (!currentUserId) return;
+
+    const { data: existingVote } = await supabase
+      .from("votes")
+      .select("id")
+      .eq("comment_id", commentId)
+      .eq("user_id", currentUserId)
+      .single();
+
+    if (existingVote) {
+      await supabase.from("votes").delete().eq("id", existingVote.id);
+    } else {
+      await supabase.from("votes").insert({
+        user_id: currentUserId,
+        comment_id: commentId,
+        value: 1,
+      });
+    }
+
+    fetchPost();
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || !currentUserId) return;
+
+    setSubmittingComment(true);
+    const { error } = await supabase.from("comments").insert({
+      post_id: postId,
+      user_id: currentUserId,
+      body: newComment.trim(),
+    });
+
+    if (!error) {
+      setNewComment("");
+      fetchPost();
+    }
+    setSubmittingComment(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-neutral-500">Post not found.</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      
+    <div className="max-w-3xl mx-auto">
+      {/* Back button */}
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 mb-6 cursor-pointer"
+      >
+        <ArrowLeft size={16} />
+        Back to Discussions
+      </button>
+
+      {/* Post */}
+      <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm mb-6">
+        <h1 className="text-2xl font-bold text-neutral-900 mb-4">
+          {post.title}
+        </h1>
+
+        <div className="flex items-center gap-3 mb-4 text-sm text-neutral-500">
+          <span>{post.profiles?.display_name || "Anonymous"}</span>
+          <span>·</span>
+          <span>{new Date(post.created_at).toLocaleDateString()}</span>
+        </div>
+
+        <p className="text-base text-neutral-700 whitespace-pre-wrap mb-4">
+          {post.body}
+        </p>
+
+        {post.tags && post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600 text-xs font-medium"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Vote on post */}
+        <div className="flex items-center gap-2 border-t border-neutral-100 pt-4">
+          <button
+            onClick={handleVoteOnPost}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer",
+              hasVotedOnPost
+                ? "bg-primary-50 text-primary-700"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200",
+            )}
+          >
+            <ThumbsUp size={16} />
+            {hasVotedOnPost ? "Voted" : "Vote"} ({post.votes?.length || 0})
+          </button>
+        </div>
+      </div>
+
+      {/* Comments */}
+      <div className="mb-24">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+          {comments.length} Comment{comments.length !== 1 ? "s" : ""}
+        </h2>
+
+        {comments.length === 0 ? (
+          <div className="text-center py-8 bg-white rounded-lg border border-neutral-200">
+            <MessageSquare
+              size={32}
+              className="mx-auto text-neutral-300 mb-2"
+            />
+            <p className="text-sm text-neutral-500">
+              No comments yet. Be the first to respond!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {comments.map((comment) => (
+              <div
+                key={comment.id}
+                className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span className="text-xs font-medium text-primary-700">
+                      {(comment.profiles?.display_name || "A")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium text-neutral-900">
+                    {comment.profiles?.display_name || "Anonymous"}
+                  </span>
+                  <span className="text-xs text-neutral-400">
+                    {new Date(comment.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-sm text-neutral-700 whitespace-pre-wrap">
+                  {comment.body}
+                </p>
+                <button
+                  onClick={() => handleVoteOnComment(comment.id)}
+                  className={cn(
+                    "mt-2 flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer",
+                    comment.votes?.some((v) => v.user_id === currentUserId)
+                      ? "bg-primary-50 text-primary-700"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200",
+                  )}
+                >
+                  <ThumbsUp size={12} />
+                  {comment.votes?.some((v) => v.user_id === currentUserId)
+                    ? "Voted"
+                    : "Vote"}{" "}
+                  ({comment.votes?.length || 0})
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Fixed comment input */}
+      <div className="sticky bottom-0 bg-white rounded-xl shadow-xl border-t border-neutral-200 p-4 -mx-4 sm:-mx-6">
+        <div className="max-w-3xl mx-auto flex gap-3">
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment..."
+            className="flex-1 rounded-lg border border-neutral-200 px-4 py-3 text-sm resize-y min-h-[60px] max-h-[150px] focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50"
+          />
+          <button
+            onClick={handleSubmitComment}
+            disabled={!newComment.trim() || submittingComment}
+            className="px-6 py-3 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            {submittingComment ? "Sending..." : "Send"}
+          </button>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
