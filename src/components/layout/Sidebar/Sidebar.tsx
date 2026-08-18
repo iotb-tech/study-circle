@@ -42,7 +42,7 @@ export default function Sidebar({ user }: SidebarProps) {
 
       {/* Navigation */}
       <div className="flex-1 p-4">
-        <SidebarNav />
+        <SidebarNav role={user?.role} />
       </div>
 
       {/* User info */}
