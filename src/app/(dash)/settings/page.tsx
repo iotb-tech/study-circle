@@ -1,7 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+const [displayName, setDisplayName] = useState("");
+const [savedName, setSavedName] = useState("");
 
+useEffect(() => {
+  const storedName = localStorage.getItem("displayName");
+
+  if (storedName) {
+    setDisplayName(storedName);
+    setSavedName(storedName);
+  }
+}, []);
+
+const handleSaveName = () => {
+  const trimmedName = displayName.trim();
+
+  if (!trimmedName) return;
+
+  localStorage.setItem("displayName", trimmedName);
+  setDisplayName(trimmedName);
+  setSavedName(trimmedName);
+};
 type Section = "profile" | "appearance" | "notifications" | null;
 
 export default function SettingsPage() {
@@ -60,7 +80,35 @@ export default function SettingsPage() {
             >
               <div className="overflow-hidden">
                 <div className="border-t border-neutral-200 px-4 py-5 dark:border-neutral-700 sm:px-5">
-                  Profile settings will go here.
+                  <label
+  htmlFor="displayName"
+  className="mb-2 block text-sm font-medium"
+>
+  Display name
+</label>
+
+<input
+  id="displayName"
+  type="text"
+  value={displayName}
+  onChange={(event) =>
+    setDisplayName(event.target.value)
+  }
+  placeholder="Enter your display name"
+  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-neutral-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-primary-700"
+/>
+
+<button
+  type="button"
+  onClick={handleSaveName}
+  disabled={
+    !displayName.trim() ||
+    displayName.trim() === savedName
+  }
+  className="mt-4 w-full rounded-lg bg-primary-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+>
+  Save changes
+</button>
                 </div>
               </div>
             </div>
