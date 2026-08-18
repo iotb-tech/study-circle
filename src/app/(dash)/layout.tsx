@@ -6,14 +6,20 @@ import { createClient } from "@/lib/supabase/client";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 import Navbar from "@/components/layout/Navbar/Navbar";
 
+type UserRole = "fellow" | "mentor" | "admin";
+
 interface UserProfile {
   id: string;
   email?: string;
   display_name?: string | null;
   avatar_url?: string | null;
-  role?: "fellow" | "mentor" | "admin";
+  role?: UserRole;
   bio?: string | null;
 }
+
+const isUserRole = (role: string): role is UserRole => {
+  return role === "fellow" || role === "mentor" || role === "admin";
+};
 
 export default function DashLayout({
   children,
@@ -42,12 +48,14 @@ export default function DashLayout({
         .eq("id", user.id)
         .single();
 
+      const role = profile?.role;
+
       setUser({
         id: user.id,
         email: user.email,
         display_name: profile?.display_name || null,
         avatar_url: profile?.avatar_url || null,
-        role: profile?.role || "fellow",
+        role: role && isUserRole(role) ? role : "fellow",
         bio: profile?.bio || null,
       });
       setLoading(false);

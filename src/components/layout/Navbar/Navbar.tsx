@@ -8,8 +8,12 @@ import MobileSidebar from "../Sidebar/MobileSidebar";
 
 interface NavbarProps {
   user: {
-    display_name: string | null;
-    avatar_url: string | null;
+    id: string;
+    email?: string;
+    display_name?: string | null;
+    avatar_url?: string | null;
+    role?: "fellow" | "mentor" | "admin";
+    bio?: string | null;
   } | null;
 }
 
