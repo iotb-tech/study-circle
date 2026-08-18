@@ -58,6 +58,7 @@ Study Circle provides a searchable knowledge base where fellows can:
 - **posts** — Knowledge base entries with full-text search
 - **comments** — Threaded discussions on posts
 - **votes** — Upvotes on posts and comments (XOR constraint)
+- **notifications** — User activity notifications
 
 ### Key Decisions
 
