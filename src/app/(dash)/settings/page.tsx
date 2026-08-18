@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserRole, isUserRole } from "@/types/profile";
 
@@ -10,7 +10,11 @@ export default function SettingsPage() {
   const [bio, setBio] = useState("");
   const [role, setRole] = useState<UserRole>("fellow");
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    text: string;
+    type: "success" | "error" | "warning";
+  } | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -37,6 +41,26 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const showMessage = (msg: string, type: "success" | "error" | "warning") => {
+    setMessage({ text: msg, type });
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      setMessage(null);
+    }, 3000);
+  };
+
   const handleSaveProfile = async () => {
     setSaving(true);
     setMessage(null);
@@ -57,11 +81,9 @@ export default function SettingsPage() {
 
       if (error) throw error;
 
-      setMessage("Profile updated successfully!");
-    } catch (err) {
-      setMessage(
-        err instanceof Error ? err.message : "Failed to update profile",
-      );
+      showMessage("Profile updated successfully!", "success");
+    } catch {
+      showMessage("Failed to update profile", "error");
     } finally {
       setSaving(false);
     }
@@ -75,20 +97,35 @@ export default function SettingsPage() {
       if (!user) return;
 
       // Create a notification for admins
-      const { error: notifError } = await supabase
-        .from("notifications")
-        .insert({
-          user_id: user.id,
-          type: "role_request",
-          content: `${user.email} has requested mentor status`,
-        });
+      const { data: admins, error: adminError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("role", "admin");
 
-      if (notifError) throw notifError;
+      if (adminError) throw adminError;
 
-      setMessage("Mentor status requested! An admin will review your request.");
+      // Create notification for EACH admin
+      if (admins && admins.length > 0) {
+        const notifications = admins.map((admin) => ({
+          user_id: admin.id, // ← Send to admin's ID
+          type: "role_request" as const,
+          content: `${user.email || "A user"} has requested mentor status`,
+        }));
+
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert(notifications);
+
+        if (notifError) throw notifError;
+      }
+
+      showMessage(
+        "Mentor status requested! An admin will review your request.",
+        "warning",
+      );
     } catch (err) {
       console.error("Failed to submit request:", err);
-      setMessage("Failed to submit request. Please try again.");
+      showMessage("Failed to submit request. Please try again.", "error");
     }
   };
 
@@ -100,6 +137,21 @@ export default function SettingsPage() {
           Manage your profile and preferences
         </p>
       </div>
+
+      {/* Message display */}
+      {message && (
+        <div
+          className={`rounded-lg px-4 py-3 text-sm font-medium ${
+            message.type === "success"
+              ? "bg-success/10 border border-success/20 text-success"
+              : message.type === "error"
+                ? "bg-error/10 border border-error/20 text-error"
+                : "bg-warning/10 border border-warning/20 text-warning"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
       {/* Profile Settings */}
       <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
@@ -133,7 +185,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+            className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 cursor-pointer"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -163,20 +215,13 @@ export default function SettingsPage() {
           {role === "fellow" && (
             <button
               onClick={handleRequestMentor}
-              className="rounded-lg border border-primary-500 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+              className="rounded-lg border border-primary-500 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors cursor-pointer"
             >
               Request Mentor Status
             </button>
           )}
         </div>
       </div>
-
-      {/* Success/Error message */}
-      {message && (
-        <div className="rounded-lg bg-neutral-50 border border-neutral-200 px-4 py-3 text-sm text-neutral-700">
-          {message}
-        </div>
-      )}
     </div>
   );
 }
