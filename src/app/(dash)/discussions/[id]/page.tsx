@@ -45,6 +45,8 @@ export default function PostDetailPage() {
   const [hasVotedOnPost, setHasVotedOnPost] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  const [voteWarning, setVoteWarning] = useState<string | null>(null);
+
   useEffect(() => {
     const load = async () => {
       const {
@@ -87,11 +89,13 @@ export default function PostDetailPage() {
 
     const { data: commentsData } = await supabase
       .from("comments")
-      .select(`
+      .select(
+        `
         *,
         profiles:user_id (display_name, role),
         votes (id, user_id, value)
-      `)
+      `,
+      )
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
 
@@ -105,33 +109,76 @@ export default function PostDetailPage() {
   const handleVoteOnPost = async () => {
     if (!currentUserId) return;
 
-    // Check if user already voted on this post
-    const { data: existingVote } = await supabase
+    // Check if the user already voted on this post
+    const { data: postVote } = await supabase
+      .from("votes")
+      .select("id")
+      .eq("post_id", postId)
+      .eq("user_id", currentUserId)
+      .maybeSingle();
+
+    // If they already voted on the post, allow them to remove that vote
+    if (postVote) {
+      await supabase.from("votes").delete().eq("id", postVote.id);
+      setHasVotedOnPost(false);
+      await fetchPost();
+      return;
+    }
+
+    // Get comments belonging to this post
+    const { data: postComments } = await supabase
+      .from("comments")
+      .select("id")
+      .eq("post_id", postId);
+
+    if (postComments && postComments.length > 0) {
+      // Check each comment for a vote from the current user
+      const commentIds = postComments.map((comment) => comment.id);
+
+      const { data: commentVote } = await supabase
+        .from("votes")
+        .select("id")
+        .eq("user_id", currentUserId)
+        .in("comment_id", commentIds)
+        .limit(1)
+        .maybeSingle();
+
+      if (commentVote) {
+        setVoteWarning(
+          "You already voted on a comment in this post. Remove your comment vote first.",
+        );
+        return;
+      }
+    }
+
+    // No existing vote — create the post vote
+    await supabase.from("votes").insert({
+      user_id: currentUserId,
+      post_id: postId,
+      value: 1,
+    });
+
+    setHasVotedOnPost(true);
+    await fetchPost();
+  };
+
+  const handleVoteOnComment = async (commentId: string) => {
+    if (!currentUserId) return;
+
+    // Check if user already voted on the post
+    const { data: postVote } = await supabase
       .from("votes")
       .select("id")
       .eq("post_id", postId)
       .eq("user_id", currentUserId)
       .single();
 
-    if (existingVote) {
-      // Remove vote
-      await supabase.from("votes").delete().eq("id", existingVote.id);
-      setHasVotedOnPost(false);
-    } else {
-      // Add vote
-      await supabase.from("votes").insert({
-        user_id: currentUserId,
-        post_id: postId,
-        value: 1,
-      });
-      setHasVotedOnPost(true);
+    if (postVote) {
+      setVoteWarning(
+        "You already voted on this post. Remove your post vote first.",
+      );
+      return;
     }
-
-    fetchPost();
-  };
-
-  const handleVoteOnComment = async (commentId: string) => {
-    if (!currentUserId) return;
 
     const { data: existingVote } = await supabase
       .from("votes")
@@ -334,6 +381,28 @@ export default function PostDetailPage() {
           </button>
         </div>
       </div>
+
+      {/* Vote Warning Modal */}
+      {voteWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Voting restriction
+            </h3>
+
+            <p className="text-sm text-neutral-600 leading-6">{voteWarning}</p>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setVoteWarning(null)}
+                className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors cursor-pointer"
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
