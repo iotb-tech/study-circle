@@ -40,8 +40,8 @@ export default function DashboardContent({ data }: DashboardContentProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Dashboard</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Dashboard</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-200 mt-1">
           Overview of your activity and community engagement
         </p>
       </div>
