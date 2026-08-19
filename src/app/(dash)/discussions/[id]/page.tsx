@@ -46,6 +46,10 @@ export default function PostDetailPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const [voteWarning, setVoteWarning] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState(false);
+  const [editedPostBody, setEditedPostBody] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editedCommentBody, setEditedCommentBody] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -217,6 +221,57 @@ export default function PostDetailPage() {
     setSubmittingComment(false);
   };
 
+  const handleEditPost = async () => {
+    if (!editedPostBody.trim()) return;
+
+    const { error } = await supabase
+      .from("posts")
+      .update({ body: editedPostBody })
+      .eq("id", postId);
+
+    if (!error) {
+      setEditingPost(false);
+      fetchPost();
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!confirm("Are you sure you want to delete this post?")) return;
+
+    const { error } = await supabase.from("posts").delete().eq("id", postId);
+
+    if (!error) {
+      router.push("/discussions");
+    }
+  };
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editedCommentBody.trim()) return;
+
+    const { error } = await supabase
+      .from("comments")
+      .update({ body: editedCommentBody })
+      .eq("id", commentId);
+
+    if (!error) {
+      setEditingCommentId(null);
+      fetchPost();
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (!error) {
+      fetchPost();
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -288,6 +343,52 @@ export default function PostDetailPage() {
             {hasVotedOnPost ? "Voted" : "Vote"} ({post.votes?.length || 0})
           </button>
         </div>
+
+        {currentUserId === post.user_id && (
+          <div className="flex items-center gap-2 border-t border-neutral-100 pt-4">
+            {!editingPost ? (
+              <>
+                <button
+                  onClick={() => {
+                    setEditingPost(true);
+                    setEditedPostBody(post.body);
+                  }}
+                  className="text-xs text-neutral-500 hover:text-primary-600 cursor-pointer"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleDeletePost}
+                  className="text-xs text-error hover:text-error/80 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </>
+            ) : (
+              <div className="w-full space-y-2">
+                <textarea
+                  value={editedPostBody}
+                  onChange={(e) => setEditedPostBody(e.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleEditPost}
+                    className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingPost(false)}
+                    className="text-xs border border-neutral-200 px-3 py-1.5 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Comments */}
@@ -357,6 +458,52 @@ export default function PostDetailPage() {
                     : "Vote"}{" "}
                   ({comment.votes?.length || 0})
                 </button>
+
+                {currentUserId === comment.user_id && (
+                  <div className="flex items-center gap-2 mt-2">
+                    {editingCommentId === comment.id ? (
+                      <div className="w-full space-y-2">
+                        <textarea
+                          value={editedCommentBody}
+                          onChange={(e) => setEditedCommentBody(e.target.value)}
+                          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditComment(comment.id)}
+                            className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingCommentId(null)}
+                            className="text-xs border border-neutral-200 px-3 py-1.5 rounded-lg"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingCommentId(comment.id);
+                            setEditedCommentBody(comment.body);
+                          }}
+                          className="text-xs text-neutral-500 hover:text-primary-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="text-xs text-error hover:text-error/80"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
