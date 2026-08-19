@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Bookmark, MessageSquare, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import { createClient } from "@/lib/supabase/client";
 
 interface PostCardProps {
   post: {
@@ -24,6 +25,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onTagClick }: PostCardProps) {
+  const supabase = createClient();
   const router = useRouter();
   const displayName = post.profiles?.display_name || "Anonymous";
   const initials = displayName.charAt(0).toUpperCase();
@@ -37,11 +39,33 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
   );
   const isBookmarked = bookmarks.some((b) => b.id === post.id);
 
-  const toggleBookmark = (e: React.MouseEvent) => {
+  // Replace the localStorage bookmark with backend:
+  const toggleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setBookmarks((prev) =>
-      isBookmarked ? prev.filter((b) => b.id !== post.id) : [...prev, post],
-    );
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    if (isBookmarked) {
+      // Remove bookmark
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("post_id", post.id);
+
+      setBookmarks((prev) => prev.filter((b) => b.id !== post.id));
+    } else {
+      // Add bookmark
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
+        post_id: post.id,
+      });
+
+      setBookmarks((prev) => [...prev, post]);
+    }
   };
 
   return (
