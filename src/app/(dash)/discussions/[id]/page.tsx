@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowLeft, ThumbsUp, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface Comment {
   id: string;
@@ -50,6 +51,11 @@ export default function PostDetailPage() {
   const [editedPostBody, setEditedPostBody] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedCommentBody, setEditedCommentBody] = useState("");
+
+  const [showDeletePostModal, setShowDeletePostModal] = useState(false);
+  const [showDeleteCommentModal, setShowDeleteCommentModal] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     const load = async () => {
@@ -236,13 +242,16 @@ export default function PostDetailPage() {
   };
 
   const handleDeletePost = async () => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    setShowDeletePostModal(true);
+  };
 
+  const confirmDeletePost = async () => {
     const { error } = await supabase.from("posts").delete().eq("id", postId);
 
     if (!error) {
       router.push("/discussions");
     }
+    setShowDeletePostModal(false);
   };
 
   const handleEditComment = async (commentId: string) => {
@@ -259,17 +268,22 @@ export default function PostDetailPage() {
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
-    if (!confirm("Are you sure you want to delete this comment?")) return;
+  const handleDeleteComment = (commentId: string) => {
+    setShowDeleteCommentModal(commentId);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!showDeleteCommentModal) return;
 
     const { error } = await supabase
       .from("comments")
       .delete()
-      .eq("id", commentId);
+      .eq("id", showDeleteCommentModal);
 
     if (!error) {
       fetchPost();
     }
+    setShowDeleteCommentModal(null);
   };
 
   if (loading) {
@@ -550,6 +564,23 @@ export default function PostDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeletePostModal}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        onConfirm={confirmDeletePost}
+        onCancel={() => setShowDeletePostModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={!!showDeleteCommentModal}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        onConfirm={confirmDeleteComment}
+        onCancel={() => setShowDeleteCommentModal(null)}
+      />
     </div>
   );
 }
