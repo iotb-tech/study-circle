@@ -13,42 +13,49 @@ This folder contains SQL migration files for the Study Circle database.
 
 ## Migration files
 
-| File | Description |
-|------|-------------|
-| `01_first_schema.sql` | Core tables, indexes, RLS, search |
-| `02_seed_data.sql` | Development seed data (posts, comments, votes) | Run second |
-| `03_avaatrs_bucket.sql` | Creating a bucket in Supabase storage to store the user profile picture |
-| `04_user_roles_and_bio.sql` | Add role (fellow/mentor/admin), bio, and notifications | Run fourth |
-| `05_fix_notifications_rls.sql` | Fix notifications RLS for cross-user notifications | Run fifth |
-| `06_admin_update_policy.sql` | Allow admins to update any profile | Run sixth |
-| `07_bookmarks.sql` | Bookmarks table for saving posts | Run seventh |
+| File                           | Description                                                             |
+| ------------------------------ | ----------------------------------------------------------------------- | ----------- |
+| `01_first_schema.sql`          | Core tables, indexes, RLS, search                                       |
+| `02_seed_data.sql`             | Development seed data (posts, comments, votes)                          | Run second  |
+| `03_avaatrs_bucket.sql`        | Creating a bucket in Supabase storage to store the user profile picture |
+| `04_user_roles_and_bio.sql`    | Add role (fellow/mentor/admin), bio, and notifications                  | Run fourth  |
+| `05_fix_notifications_rls.sql` | Fix notifications RLS for cross-user notifications                      | Run fifth   |
+| `06_admin_update_policy.sql`   | Allow admins to update any profile                                      | Run sixth   |
+| `07_bookmarks.sql`             | Bookmarks table for saving posts                                        | Run seventh |
+| `08_add_email_to_profiles.sql` | Add email column to profiles for admin display                          |
+| `09_delete_user_function.sql`  | Database function for proper user deletion                              |
 
 ---
 
 ## About the schema
 
 ### Tables
+
 - **profiles** — Public user data linked to `auth.users` (auto-created via trigger)
 - **posts** — Knowledge base entries with full-text search (`search_vector` maintained by trigger)
 - **comments** — Discussion threads linked to posts and users
 - **votes** — Upvotes on posts or comments with XOR constraint
 - **notifications** — User notifications for role requests, comments, and votes
+- **bookmarks** — Saved posts per user
 
 ### Key design decisions
+
 - UUID primary keys on all tables
 - Full-text search via `tsvector` with GIN index (weighted: title A, body B, tags C)
 - Partial unique indexes enforce one-vote-per-user-per-target
 - Row Level Security enabled on all tables
 - Profile auto-creation via trigger on `auth.users` insert
 - Foreign keys with CASCADE delete for data integrity
+- Email stored in profiles for admin panel display
+- Database function for user deletion (cascades to all related data)
 
 ---
 
 ## Seed data instructions
 
-The `seed-data.sql` file populates the database with test data: 3 users, 6 realistic posts, 6 comments, and 10 votes for development and testing purposes.
+The `02_seed_data.sql` file populates the database with test data: 3 users, 6 realistic posts, 6 comments, and 10 votes for development and testing purposes.
 
-### ⚠️ BEFORE running seed-data.sql:
+### Before running seed data:
 
 1. **Create 3 test users** through your app's signup page:
    - Person A: `your-email-1@test.com`
@@ -65,19 +72,13 @@ The `seed-data.sql` file populates the database with test data: 3 users, 6 reali
    - `'Person B'` → Person B's actual display name
    - `'Person C'` → Person C's actual display name
 
-4. **Find and replace** — most SQL editors have find-and-replace (Ctrl+H or Cmd+H):
-   - Search `USER_1_ID` → Replace with first user's UUID
-   - Search `USER_2_ID` → Replace with second user's UUID
-   - Search `USER_3_ID` → Replace with third user's UUID
-   - Search `Person A` → Replace with first user's name
-   - Search `Person B` → Replace with second user's name
-   - Search `Person C` → Replace with third user's name
+4. **Use find-and-replace (Ctrl+H or Cmd+H)** — most SQL editors have find-and-replace (Ctrl+H or Cmd+H):
 
 ---
 
 ## Image Bucket Instructions
 
-1. It is required to copy the schema file named 03_avatars_bucket and paste it in the SQL Editor in Supabase and t `Run`
+1. It is required to copy the schema file named `03_avatars_bucket.sql` and paste it in the SQL Editor in Supabase and click on `Run`
 2. After a few seconds, you should see a message of `Succesful. No rows returned`
 3. To confirm, in your project dashboard in Supabase, click on `storage` to see that a bucket has been created for storing the image.
 
@@ -87,18 +88,18 @@ The `seed-data.sql` file populates the database with test data: 3 users, 6 reali
 
 The system supports three roles:
 
-| Role | Description | Permissions |
-|------|-------------|-------------|
-| **fellow** | Default role for new users | Create posts, comment, vote |
-| **mentor** | Approved contributors | All fellow permissions + mentor badge |
-| **admin** | System administrators | All permissions + manage user roles |
+| Role       | Description                | Permissions                           |
+| ---------- | -------------------------- | ------------------------------------- |
+| **fellow** | Default role for new users | Create posts, comment, vote           |
+| **mentor** | Approved contributors      | All fellow permissions + mentor badge |
+| **admin**  | System administrators      | All permissions + manage user roles   |
 
 ### Setting an Admin (Development)
 
 ```sql
 -- Replace with the admin's email
-UPDATE public.profiles 
-SET role = 'admin' 
+UPDATE public.profiles
+SET role = 'admin'
 WHERE id = (
   SELECT id FROM auth.users WHERE email = 'admin@example.com'
 );
