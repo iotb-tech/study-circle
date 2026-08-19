@@ -174,6 +174,7 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          email: string | null
           id: string
           role: string
         }
@@ -182,6 +183,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id: string
           role?: string
         }
@@ -190,6 +192,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id?: string
           role?: string
         }
@@ -249,7 +252,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_user: { Args: { user_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
