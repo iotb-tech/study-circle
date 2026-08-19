@@ -83,8 +83,8 @@ export default function DiscussionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Discussions</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Discussions</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-200 mt-1">
           Ask questions, share knowledge, and learn together
         </p>
       </div>
@@ -100,12 +100,12 @@ export default function DiscussionsPage() {
       />
 
       {!hasSearchQuery && selectedTags.length === 0 && posts.length > 0 && (
-        <div className="text-center py-12 bg-neutral-100 rounded-lg border border-neutral-200">
+        <div className="text-center py-12 bg-neutral-100 rounded-lg border border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700">
           <Search size={48} className="mx-auto text-neutral-300 mb-4" />
-          <h3 className="text-lg font-medium text-neutral-700 mb-2">
+          <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-200 mb-2">
             Search for posts
           </h3>
-          <p className="text-sm text-neutral-500 max-w-md mx-auto">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
             Use the search bar above to find posts by title or body content. You
             can also click on tags to filter posts.
           </p>
