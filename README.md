@@ -54,11 +54,11 @@ Study Circle provides a searchable knowledge base where fellows can:
 
 ### Tables
 
-- **profiles** — Public user data linked to auth.users
+- **profiles** — Public user data linked to auth.users (with role and bio)
 - **posts** — Knowledge base entries with full-text search
 - **comments** — Threaded discussions on posts
 - **votes** — Upvotes on posts and comments (XOR constraint)
-- **notifications** — User activity notifications
+- **notifications** — User notifications for role requests and approvals
 
 ### Key Decisions
 
@@ -66,6 +66,20 @@ Study Circle provides a searchable knowledge base where fellows can:
 - Full-text search with tsvector/GIN index (not ILIKE)
 - Partial unique indexes for one-vote-per-user-per-target
 - RLS on all tables (never disabled)
+
+---
+
+## User Roles
+
+Study Circle supports three user roles:
+
+| Role | Description |
+|------|-------------|
+| **Fellow** | Default role. Can create posts, comment, and vote. |
+| **Mentor** | Approved contributors with mentor badge on posts/comments. |
+| **Admin** | Manages user roles from Admin Panel. |
+
+Fellows can request mentor status from Settings. Admins approve from Admin Panel.
 
 ---
 

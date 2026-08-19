@@ -9,6 +9,8 @@ This folder contains SQL migration files for the Study Circle database.
 3. Paste into the SQL Editor
 4. Click "Run"
 
+---
+
 ## Migration files
 
 | File | Description |
@@ -19,6 +21,8 @@ This folder contains SQL migration files for the Study Circle database.
 | `04_user_roles_and_bio.sql` | Add role (fellow/mentor/admin), bio, and notifications | Run fourth |
 | `05_fix_notifications_rls.sql` | Fix notifications RLS for cross-user notifications | Run fifth |
 | `06_admin_update_policy.sql` | Allow admins to update any profile | Run sixth |
+
+---
 
 ## About the schema
 
@@ -36,6 +40,8 @@ This folder contains SQL migration files for the Study Circle database.
 - Row Level Security enabled on all tables
 - Profile auto-creation via trigger on `auth.users` insert
 - Foreign keys with CASCADE delete for data integrity
+
+---
 
 ## Seed data instructions
 
@@ -66,11 +72,45 @@ The `seed-data.sql` file populates the database with test data: 3 users, 6 reali
    - Search `Person B` → Replace with second user's name
    - Search `Person C` → Replace with third user's name
 
+---
+
 ## Image Bucket Instructions
 
 1. It is required to copy the schema file named 03_avatars_bucket and paste it in the SQL Editor in Supabase and t `Run`
 2. After a few seconds, you should see a message of `Succesful. No rows returned`
 3. To confirm, in your project dashboard in Supabase, click on `storage` to see that a bucket has been created for storing the image.
+
+---
+
+## User Roles
+
+The system supports three roles:
+
+| Role | Description | Permissions |
+|------|-------------|-------------|
+| **fellow** | Default role for new users | Create posts, comment, vote |
+| **mentor** | Approved contributors | All fellow permissions + mentor badge |
+| **admin** | System administrators | All permissions + manage user roles |
+
+### Setting an Admin (Development)
+
+```sql
+-- Replace with the admin's email
+UPDATE public.profiles 
+SET role = 'admin' 
+WHERE id = (
+  SELECT id FROM auth.users WHERE email = 'admin@example.com'
+);
+```
+
+### Role Request Flow
+
+1. Fellow requests mentor status from Settings
+2. All admins receive notification
+3. Admin approves/rejects from Admin Panel
+4. User receives notification of approval
+
+---
 
 ## Creating new migrations
 
