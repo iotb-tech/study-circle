@@ -33,6 +33,38 @@ export default function Navbar({ user }: NavbarProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
 
+  const [profile, setProfile] = useState(user);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setProfile(user);
+      return;
+    }
+
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url, role")
+        .eq("id", user.id)
+        .single();
+
+      if (data) {
+        setProfile({
+          ...user,
+          display_name: data.display_name,
+          avatar_url: data.avatar_url,
+          role:
+            data.role === "mentor" || data.role === "admin"
+              ? data.role
+              : "fellow",
+        });
+      }
+    };
+
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user) return;
 
@@ -104,8 +136,8 @@ export default function Navbar({ user }: NavbarProps) {
     router.refresh();
   };
 
-  const displayName = user?.display_name || "Fellow";
-  const avatarUrl = user?.avatar_url || null;
+  const displayName = profile?.display_name || "Fellow";
+  const avatarUrl = profile?.avatar_url || null;
   const initials = displayName
     .split(" ")
     .map((n: string) => n[0])
@@ -141,7 +173,7 @@ export default function Navbar({ user }: NavbarProps) {
   };
 
   return (
-    <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6">
+    <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6 dark:bg-neutral-800 dark:border-neutral-700">
       <MobileSidebar role={user?.role} />
 
       <div className="flex items-center gap-2 sm:gap-3 ml-auto relative">
