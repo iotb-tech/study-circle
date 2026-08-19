@@ -1,39 +1,70 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import { createClient } from "@/lib/supabase/client";
 import PostCard from "@/components/Discussions/PostCard";
-
-interface BookmarkItem {
-  id: string;
-  title: string;
-  body: string;
-  tags: string[];
-  created_at: string;
-  profiles?: {
-    display_name: string | null;
-    avatar_url: string | null;
-  } | null;
-  comments_count?: Array<{ count: number }>;
-  votes_count?: Array<{ count: number }>;
-}
+import { useQuery } from "@tanstack/react-query";
+import Spinner from "@/components/ui/Spinner";
 
 export default function BookmarksPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [bookmarks, setBookmarks] = useLocalStorage<BookmarkItem[]>(
-    "bookmarks",
-    [],
-  );
-  const [mounted, setMounted] = useState(false);
+  const supabase = createClient();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const { data: bookmarks = [], isLoading } = useQuery({
+    queryKey: ["bookmarks"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return [];
 
-  if (!mounted) return null; // avoid hydration mismatch (Next.js)
+      const { data, error } = await supabase
+        .from("bookmarks")
+        .select(
+          `
+          post_id,
+          posts (
+            id, title, body, tags, created_at,
+            profiles:user_id (display_name, avatar_url, role),
+            comments_count:comments(count),
+            votes_count:votes(count)
+          )
+        `,
+        )
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      return data
+        .map((item) => item.posts)
+        .filter((post): post is NonNullable<typeof post> => post !== null)
+        .map((post) => ({
+          id: post.id,
+          title: post.title,
+          body: post.body,
+          tags: post.tags,
+          created_at: post.created_at,
+          profiles: post.profiles
+            ? {
+                display_name: post.profiles.display_name,
+                avatar_url: post.profiles.avatar_url,
+                role: post.profiles.role as "fellow" | "mentor" | "admin",
+              }
+            : null,
+          comments_count: post.comments_count,
+          votes_count: post.votes_count,
+        }));
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" className="text-primary-500" />
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-neutral-200 rounded-xl px-4 py-8">
+    <main className="min-h-screen rounded-xl px-4 py-8">
       <div className="mx-auto max-w-4xl">
         <h1 className="text-3xl font-bold text-neutral-900 mb-6">
           Your Bookmarks
@@ -41,7 +72,9 @@ export default function BookmarksPage() {
 
         {bookmarks.length === 0 ? (
           <div className="text-center py-20 text-neutral-400">
-            <p className="text-lg">You haven’t bookmarked any posts yet.</p>
+            <p className="text-lg">
+              You haven&apos;t bookmarked any posts yet.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">

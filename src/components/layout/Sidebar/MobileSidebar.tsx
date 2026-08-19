@@ -12,19 +12,29 @@ import {
   Settings,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/discussions", label: "Discussions", icon: MessageSquare },
-  { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
-  { href: "/profile", label: "Profile", icon: User },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+interface MobileSidebarProps {
+  role?: "fellow" | "mentor" | "admin";
+}
 
-export default function MobileSidebar() {
+export default function MobileSidebar({ role }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  const navItems = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/discussions", label: "Discussions", icon: MessageSquare },
+    { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
+    { href: "/profile", label: "Profile", icon: User },
+    { href: "/settings", label: "Settings", icon: Settings },
+  ];
+
+  const allNavItems =
+    role === "admin"
+      ? [...navItems, { href: "/admin", label: "Admin", icon: Shield }]
+      : navItems;
 
   return (
     <>
@@ -49,7 +59,7 @@ export default function MobileSidebar() {
       <aside
         className={cn(
           "fixed top-0 left-0 bottom-0 w-64 bg-neutral-900 z-50 transform transition-transform md:hidden",
-          open ? "translate-x-0" : "-translate-x-full"
+          open ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {/* Header */}
@@ -67,7 +77,7 @@ export default function MobileSidebar() {
 
         {/* Nav */}
         <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
+          {allNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
@@ -78,7 +88,7 @@ export default function MobileSidebar() {
                   "flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary-500 text-white"
-                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white",
                 )}
               >
                 <item.icon size={18} />

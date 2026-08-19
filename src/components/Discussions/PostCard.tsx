@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Bookmark, MessageSquare, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import { createClient } from "@/lib/supabase/client";
 
 interface PostCardProps {
   post: {
@@ -12,9 +13,10 @@ interface PostCardProps {
     body: string;
     tags: string[];
     created_at: string;
-    profiles?: {
+    profiles: {
       display_name: string | null;
       avatar_url: string | null;
+      role?: "fellow" | "mentor" | "admin";
     } | null;
     comments_count?: Array<{ count: number }>;
     votes_count?: Array<{ count: number }>;
@@ -23,6 +25,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onTagClick }: PostCardProps) {
+  const supabase = createClient();
   const router = useRouter();
   const displayName = post.profiles?.display_name || "Anonymous";
   const initials = displayName.charAt(0).toUpperCase();
@@ -36,11 +39,33 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
   );
   const isBookmarked = bookmarks.some((b) => b.id === post.id);
 
-  const toggleBookmark = (e: React.MouseEvent) => {
+  // Replace the localStorage bookmark with backend:
+  const toggleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setBookmarks((prev) =>
-      isBookmarked ? prev.filter((b) => b.id !== post.id) : [...prev, post],
-    );
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    if (isBookmarked) {
+      // Remove bookmark
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("post_id", post.id);
+
+      setBookmarks((prev) => prev.filter((b) => b.id !== post.id));
+    } else {
+      // Add bookmark
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
+        post_id: post.id,
+      });
+
+      setBookmarks((prev) => [...prev, post]);
+    }
   };
 
   return (
@@ -51,9 +76,7 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
       )}
     >
       {/* Title */}
-      <h3
-        className="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2"
-      >
+      <h3 className="text-lg font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2">
         {post.title}
       </h3>
 
@@ -82,18 +105,26 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
       )}
 
       {/* Footer: Author, date, stats */}
-      <div
-        className="flex items-center justify-between text-xs text-neutral-400 border-t border-neutral-100 pt-3"
-      >
+      <div className="flex items-center justify-between text-xs text-neutral-400 border-t border-neutral-100 pt-3">
         <div className="flex items-center gap-2">
-          <div
-            className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center"
-          >
+          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
             <span className="text-xs font-medium text-primary-700">
               {initials}
             </span>
           </div>
           <span className="text-neutral-600 font-medium">{displayName}</span>
+
+          {post.profiles?.role === "mentor" && (
+            <span className="px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 text-xs font-medium">
+              Mentor
+            </span>
+          )}
+          {post.profiles?.role === "admin" && (
+            <span className="px-2 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
+              Admin
+            </span>
+          )}
+
           <span>·</span>
           <span>{new Date(post.created_at).toLocaleDateString()}</span>
         </div>

@@ -1,138 +1,134 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowLeft, ThumbsUp, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Comment {
-  id: string;
-  body: string;
-  created_at: string;
-  user_id: string;
-  profiles: {
-    display_name: string | null;
-  } | null;
-  votes: Array<{ id: string; user_id: string; value: number }>;
-}
-
-interface Post {
-  id: string;
-  title: string;
-  body: string;
-  tags: string[];
-  created_at: string;
-  user_id: string;
-  profiles: {
-    display_name: string | null;
-  } | null;
-  votes: Array<{ id: string; user_id: string; value: number }>;
-}
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchPostById } from "@/services/postDetail";
+import { fetchCommentsByPostId } from "@/services/comments";
+import Spinner from "@/components/ui/Spinner";
 
 export default function PostDetailPage() {
-    const params = useParams();
+  const params = useParams();
   const router = useRouter();
   const supabase = createClient();
   const postId = params.id as string;
+  const queryClient = useQueryClient();
 
-  const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
-  const [loading, setLoading] = useState(true);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [hasVotedOnPost, setHasVotedOnPost] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [voteWarning, setVoteWarning] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState(false);
+  const [editedPostBody, setEditedPostBody] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editedCommentBody, setEditedCommentBody] = useState("");
+  const [showDeletePostModal, setShowDeletePostModal] = useState(false);
+  const [showDeleteCommentModal, setShowDeleteCommentModal] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
-    const load = async () => {
+    const getUserId = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-      await fetchPost();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
     };
-    load();
+    getUserId();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postId]);
+  }, []);
 
-  const fetchPost = async () => {
-    const { data: postData, error: postError } = await supabase
-      .from("posts")
-      .select(
-        `
-        *,
-        profiles:user_id (display_name),
-        votes (id, user_id, value)
-      `,
-      )
-      .eq("id", postId)
-      .single();
+  const { data: post, isLoading: postLoading } = useQuery({
+    queryKey: ["post", postId],
+    queryFn: () => fetchPostById(postId),
+  });
 
-    if (postError) {
-      console.error("Error fetching post:", postError.message);
-      return;
-    }
+  const { data: comments = [] } = useQuery({
+    queryKey: ["comments", postId],
+    queryFn: () => fetchCommentsByPostId(postId),
+  });
 
-    if (postData) {
-      setPost(postData as unknown as Post);
+  const invalidatePost = () => {
+    queryClient.invalidateQueries({ queryKey: ["post", postId] });
+  };
 
-      setHasVotedOnPost(
-        postData.votes?.some(
-          (v: { user_id: string }) => v.user_id === currentUserId,
-        ) || false,
-      );
-    }
-
-    const { data: commentsData } = await supabase
-      .from("comments")
-      .select(
-        `
-        *,
-        profiles:user_id (display_name),
-        votes (id, user_id, value)
-      `,
-      )
-      .eq("post_id", postId)
-      .order("created_at", { ascending: true });
-
-    if (commentsData) {
-      setComments(commentsData as unknown as Comment[]);
-    }
-
-    setLoading(false);
+  const invalidateComments = () => {
+    queryClient.invalidateQueries({ queryKey: ["comments", postId] });
   };
 
   const handleVoteOnPost = async () => {
     if (!currentUserId) return;
 
-    // Check if user already voted on this post
-    const { data: existingVote } = await supabase
+    const { data: postVote } = await supabase
+      .from("votes")
+      .select("id")
+      .eq("post_id", postId)
+      .eq("user_id", currentUserId)
+      .maybeSingle();
+
+    if (postVote) {
+      await supabase.from("votes").delete().eq("id", postVote.id);
+      setHasVotedOnPost(false);
+      invalidatePost();
+      return;
+    }
+
+    const { data: postComments } = await supabase
+      .from("comments")
+      .select("id")
+      .eq("post_id", postId);
+
+    if (postComments && postComments.length > 0) {
+      const commentIds = postComments.map((c) => c.id);
+      const { data: commentVote } = await supabase
+        .from("votes")
+        .select("id")
+        .eq("user_id", currentUserId)
+        .in("comment_id", commentIds)
+        .limit(1)
+        .maybeSingle();
+
+      if (commentVote) {
+        setVoteWarning(
+          "You already voted on a comment in this post. Remove your comment vote first.",
+        );
+        return;
+      }
+    }
+
+    await supabase.from("votes").insert({
+      user_id: currentUserId,
+      post_id: postId,
+      value: 1,
+    });
+
+    setHasVotedOnPost(true);
+    invalidatePost();
+  };
+
+  const handleVoteOnComment = async (commentId: string) => {
+    if (!currentUserId) return;
+
+    const { data: postVote } = await supabase
       .from("votes")
       .select("id")
       .eq("post_id", postId)
       .eq("user_id", currentUserId)
       .single();
 
-    if (existingVote) {
-      // Remove vote
-      await supabase.from("votes").delete().eq("id", existingVote.id);
-      setHasVotedOnPost(false);
-    } else {
-      // Add vote
-      await supabase.from("votes").insert({
-        user_id: currentUserId,
-        post_id: postId,
-        value: 1,
-      });
-      setHasVotedOnPost(true);
+    if (postVote) {
+      setVoteWarning(
+        "You already voted on this post. Remove your post vote first.",
+      );
+      return;
     }
-
-    fetchPost();
-  };
-
-  const handleVoteOnComment = async (commentId: string) => {
-    if (!currentUserId) return;
 
     const { data: existingVote } = await supabase
       .from("votes")
@@ -151,7 +147,7 @@ export default function PostDetailPage() {
       });
     }
 
-    fetchPost();
+    invalidateComments();
   };
 
   const handleSubmitComment = async () => {
@@ -166,15 +162,59 @@ export default function PostDetailPage() {
 
     if (!error) {
       setNewComment("");
-      fetchPost();
+      invalidateComments();
     }
     setSubmittingComment(false);
   };
 
-  if (loading) {
+  const handleEditPost = async () => {
+    if (!editedPostBody.trim()) return;
+    const { error } = await supabase
+      .from("posts")
+      .update({ body: editedPostBody })
+      .eq("id", postId);
+    if (!error) {
+      setEditingPost(false);
+      invalidatePost();
+    }
+  };
+
+  const confirmDeletePost = async () => {
+    const { error } = await supabase.from("posts").delete().eq("id", postId);
+    if (!error) {
+      router.push("/discussions");
+    }
+    setShowDeletePostModal(false);
+  };
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editedCommentBody.trim()) return;
+    const { error } = await supabase
+      .from("comments")
+      .update({ body: editedCommentBody })
+      .eq("id", commentId);
+    if (!error) {
+      setEditingCommentId(null);
+      invalidateComments();
+    }
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!showDeleteCommentModal) return;
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", showDeleteCommentModal);
+    if (!error) {
+      invalidateComments();
+    }
+    setShowDeleteCommentModal(null);
+  };
+
+  if (postLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-t-transparent" />
+        <Spinner size="lg" className="text-primary-500" />
       </div>
     );
   }
@@ -189,7 +229,6 @@ export default function PostDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Back button */}
       <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 mb-6 cursor-pointer"
@@ -198,7 +237,6 @@ export default function PostDetailPage() {
         Go Back
       </button>
 
-      {/* Post */}
       <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm mb-6">
         <h1 className="text-2xl font-bold text-neutral-900 mb-4">
           {post.title}
@@ -227,7 +265,6 @@ export default function PostDetailPage() {
           </div>
         )}
 
-        {/* Vote on post */}
         <div className="flex items-center gap-2 border-t border-neutral-100 pt-4">
           <button
             onClick={handleVoteOnPost}
@@ -242,9 +279,54 @@ export default function PostDetailPage() {
             {hasVotedOnPost ? "Voted" : "Vote"} ({post.votes?.length || 0})
           </button>
         </div>
+
+        {currentUserId === post.user_id && (
+          <div className="flex items-center gap-2 border-t border-neutral-100 pt-4">
+            {!editingPost ? (
+              <>
+                <button
+                  onClick={() => {
+                    setEditingPost(true);
+                    setEditedPostBody(post.body);
+                  }}
+                  className="text-xs text-neutral-500 hover:text-primary-600 cursor-pointer"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => setShowDeletePostModal(true)}
+                  className="text-xs text-error hover:text-error/80 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </>
+            ) : (
+              <div className="w-full space-y-2">
+                <textarea
+                  value={editedPostBody}
+                  onChange={(e) => setEditedPostBody(e.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleEditPost}
+                    className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg cursor-pointer"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingPost(false)}
+                    className="text-xs border border-neutral-200 px-3 py-1.5 rounded-lg cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Comments */}
       <div className="mb-24">
         <h2 className="text-lg font-semibold text-neutral-900 mb-4">
           {comments.length} Comment{comments.length !== 1 ? "s" : ""}
@@ -278,13 +360,26 @@ export default function PostDetailPage() {
                   <span className="text-sm font-medium text-neutral-900">
                     {comment.profiles?.display_name || "Anonymous"}
                   </span>
+
+                  {comment.profiles?.role === "mentor" && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 text-[10px] font-medium">
+                      Mentor
+                    </span>
+                  )}
+                  {comment.profiles?.role === "admin" && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-warning/10 text-warning text-[10px] font-medium">
+                      Admin
+                    </span>
+                  )}
                   <span className="text-xs text-neutral-400">
                     {new Date(comment.created_at).toLocaleDateString()}
                   </span>
                 </div>
+
                 <p className="text-sm text-neutral-700 whitespace-pre-wrap">
                   {comment.body}
                 </p>
+
                 <button
                   onClick={() => handleVoteOnComment(comment.id)}
                   className={cn(
@@ -300,13 +395,58 @@ export default function PostDetailPage() {
                     : "Vote"}{" "}
                   ({comment.votes?.length || 0})
                 </button>
+
+                {currentUserId === comment.user_id && (
+                  <div className="flex items-center gap-2 mt-2">
+                    {editingCommentId === comment.id ? (
+                      <div className="w-full space-y-2">
+                        <textarea
+                          value={editedCommentBody}
+                          onChange={(e) => setEditedCommentBody(e.target.value)}
+                          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditComment(comment.id)}
+                            className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg cursor-pointer"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingCommentId(null)}
+                            className="text-xs border border-neutral-200 px-3 py-1.5 rounded-lg cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingCommentId(comment.id);
+                            setEditedCommentBody(comment.body);
+                          }}
+                          className="text-xs text-neutral-500 hover:text-primary-600 cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteCommentModal(comment.id)}
+                          className="text-xs text-error hover:text-error/80 cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Fixed comment input */}
       <div className="sticky bottom-0 bg-white rounded-xl shadow-xl border-t border-neutral-200 p-4 -mx-4 sm:-mx-6">
         <div className="max-w-3xl mx-auto flex gap-3">
           <textarea
@@ -324,6 +464,41 @@ export default function PostDetailPage() {
           </button>
         </div>
       </div>
+
+      {voteWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Voting restriction
+            </h3>
+            <p className="text-sm text-neutral-600 leading-6">{voteWarning}</p>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setVoteWarning(null)}
+                className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors cursor-pointer"
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={showDeletePostModal}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        onConfirm={confirmDeletePost}
+        onCancel={() => setShowDeletePostModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={!!showDeleteCommentModal}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        onConfirm={confirmDeleteComment}
+        onCancel={() => setShowDeleteCommentModal(null)}
+      />
     </div>
   );
 }

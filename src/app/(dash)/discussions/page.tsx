@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import CreatePostForm from "@/components/Discussions/CreatePostForm";
 import PostCard from "@/components/Discussions/PostCard";
 import SearchAndFilter from "@/components/Discussions/SearchAndFilter";
@@ -10,26 +10,9 @@ import usePagination from "@/hooks/usePagination";
 import Pagination from "@/components/ui/Pagination";
 import useDebounce from "@/hooks/useDebounce";
 import useLocalStorage from "@/hooks/useLocalStorage";
-
-interface Post {
-  id: string;
-  title: string;
-  body: string;
-  tags: string[];
-  created_at: string;
-  user_id: string;
-  profiles: {
-    display_name: string | null;
-    avatar_url: string | null;
-  } | null;
-  comments_count: Array<{ count: number }>;
-  votes_count: Array<{ count: number }>;
-}
+import { fetchPosts } from "@/services/posts";
 
 export default function DiscussionsPage() {
-  const supabase = createClient();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useLocalStorage<string>(
     "discussions-search",
     "",
@@ -38,30 +21,14 @@ export default function DiscussionsPage() {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  useEffect(() => {
-    fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchPosts = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("posts")
-      .select(
-        `
-        *,
-        profiles:user_id (display_name, avatar_url),
-        comments_count:comments(count),
-        votes_count:votes(count)
-      `,
-      )
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
-      setPosts(data as unknown as Post[]);
-    }
-    setLoading(false);
-  };
+  const {
+    data: posts = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["posts"],
+    queryFn: fetchPosts,
+  });
 
   const filteredPosts = useMemo(() => {
     let filtered = posts;
@@ -105,6 +72,14 @@ export default function DiscussionsPage() {
 
   const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
 
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-error">Failed to load posts. Please try again.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -114,10 +89,8 @@ export default function DiscussionsPage() {
         </p>
       </div>
 
-      {/* Create Post Form */}
       <CreatePostForm />
 
-      {/* Search and Filter */}
       <SearchAndFilter
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -126,7 +99,6 @@ export default function DiscussionsPage() {
         onClearAllTags={handleClearAllTags}
       />
 
-      {/* Empty state: No search */}
       {!hasSearchQuery && selectedTags.length === 0 && posts.length > 0 && (
         <div className="text-center py-12 bg-neutral-100 rounded-lg border border-neutral-200">
           <Search size={48} className="mx-auto text-neutral-300 mb-4" />
@@ -140,7 +112,6 @@ export default function DiscussionsPage() {
         </div>
       )}
 
-      {/* Empty state: No results */}
       {(hasSearchQuery || selectedTags.length > 0) &&
         filteredPosts.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg border border-neutral-200">
@@ -155,7 +126,6 @@ export default function DiscussionsPage() {
           </div>
         )}
 
-      {/* Posts grid */}
       {pagination.currentItems.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {pagination.currentItems.map((post) => (
@@ -164,8 +134,7 @@ export default function DiscussionsPage() {
         </div>
       )}
 
-      {/* Loading state */}
-      {loading && (
+      {isLoading && (
         <div className="text-center py-8">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-t-transparent" />
         </div>
