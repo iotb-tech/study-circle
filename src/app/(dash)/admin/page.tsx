@@ -55,7 +55,7 @@ export default function AdminPage() {
       // Fetch all profiles with their auth emails
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, display_name, role, created_at")
+        .select("id, display_name, role, created_at, email")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -152,16 +152,23 @@ export default function AdminPage() {
   const handleDeleteUser = async () => {
     if (!deleteUserId) return;
 
-    // Delete user's profile (this cascades to posts, comments, votes)
-    const { error } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", deleteUserId);
+    const { error } = await supabase.rpc("delete_user", {
+      user_id: deleteUserId,
+    });
 
-    if (!error) {
-      setUsers((prev) => prev.filter((u) => u.id !== deleteUserId));
+    if (error) {
+      console.error("Delete user error:", error);
+      setMessage({
+        text: `Failed to delete user: ${error.message}`,
+        type: "error",
+      });
+      setDeleteUserId(null);
+      return;
     }
 
+    setUsers((prev) => prev.filter((u) => u.id !== deleteUserId));
+    setMessage({ text: "User deleted successfully", type: "success" });
+    setTimeout(() => setMessage(null), 3000);
     setDeleteUserId(null);
   };
 
