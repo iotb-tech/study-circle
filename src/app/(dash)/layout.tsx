@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 import Navbar from "@/components/layout/Navbar/Navbar";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 type UserRole = "fellow" | "mentor" | "admin";
 
@@ -30,6 +31,17 @@ export default function DashLayout({
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000,
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
+  );
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -74,12 +86,14 @@ export default function DashLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar user={user} />
-      <div className="flex-1 flex flex-col overflow-hidden bg-primary-300">
-        <Navbar user={user} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+    <QueryClientProvider client={queryClient}>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar user={user} />
+        <div className="flex-1 flex flex-col overflow-hidden bg-neutral-100">
+          <Navbar user={user} />
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </QueryClientProvider>
   );
 }

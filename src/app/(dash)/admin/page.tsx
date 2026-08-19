@@ -8,6 +8,8 @@ import useDebounce from "@/hooks/useDebounce";
 import usePagination from "@/hooks/usePagination";
 import Pagination from "@/components/ui/Pagination";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Spinner from "@/components/ui/Spinner";
 
 interface UserWithProfile {
   id: string;
@@ -19,8 +21,7 @@ interface UserWithProfile {
 
 export default function AdminPage() {
   const supabase = createClient();
-  const [users, setUsers] = useState<UserWithProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -31,46 +32,37 @@ export default function AdminPage() {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const checkAdmin = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Check if current user is admin
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .single();
 
-      if (profile?.role !== "admin") {
-        setIsAdmin(false);
-        setLoading(false);
-        return;
-      }
+      setIsAdmin(profile?.role === "admin");
+    };
+    checkAdmin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-      setIsAdmin(true);
-
-      // Fetch all profiles with their auth emails
-      const { data: profiles, error } = await supabase
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("profiles")
         .select("id, display_name, role, created_at, email")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching users:", error);
-        return;
-      }
-
-      // Get emails from auth (this requires a custom function or we skip emails for now)
-      setUsers(profiles as UserWithProfile[]);
-      setLoading(false);
-    };
-
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      if (error) throw error;
+      return data as UserWithProfile[];
+    },
+    enabled: isAdmin,
+  });
 
   const filteredUsers = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return users;
@@ -93,52 +85,21 @@ export default function AdminPage() {
         .update({ role: newRole })
         .eq("id", userId);
 
-      if (updateError) {
-        console.error("Role update error:", updateError);
-        alert(`Failed to update role: ${updateError.message}`);
-        return;
+      if (updateError) throw updateError;
+
+      if (newRole === "mentor" || newRole === "admin") {
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          type: "role_approved",
+          content:
+            newRole === "mentor"
+              ? "Your mentor status request has been approved! You are now a mentor."
+              : "You have been granted admin privileges.",
+        });
       }
 
-      // Update local state
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
-      );
-
-      // If changing to mentor (approving request), notify the user
-      if (newRole === "mentor") {
-        const { error: notifError } = await supabase
-          .from("notifications")
-          .insert({
-            user_id: userId,
-            type: "role_approved",
-            content:
-              "Your mentor status request has been approved! You are now a mentor.",
-          });
-
-        if (notifError) {
-          console.error("Notification error:", notifError);
-        }
-      }
-
-      // If changing to admin
-      if (newRole === "admin") {
-        const { error: notifError } = await supabase
-          .from("notifications")
-          .insert({
-            user_id: userId,
-            type: "role_approved",
-            content: "You have been granted admin privileges.",
-          });
-
-        if (notifError) {
-          console.error("Notification error:", notifError);
-        }
-      }
-
-      // Show success feedback
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       setMessage({ text: `Role updated to ${newRole}`, type: "success" });
-
-      // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error("Failed to update role:", error);
@@ -157,7 +118,6 @@ export default function AdminPage() {
     });
 
     if (error) {
-      console.error("Delete user error:", error);
       setMessage({
         text: `Failed to delete user: ${error.message}`,
         type: "error",
@@ -166,16 +126,16 @@ export default function AdminPage() {
       return;
     }
 
-    setUsers((prev) => prev.filter((u) => u.id !== deleteUserId));
+    queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     setMessage({ text: "User deleted successfully", type: "success" });
     setTimeout(() => setMessage(null), 3000);
     setDeleteUserId(null);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-t-transparent" />
+        <Spinner size="lg" className="text-primary-500" />
       </div>
     );
   }
@@ -215,7 +175,6 @@ export default function AdminPage() {
       )}
 
       <div className="rounded-lg border border-neutral-200 bg-neutral-100 shadow-sm">
-        {/* Search bar */}
         <div className="p-4 border-b border-neutral-200">
           <div className="relative">
             <Search
@@ -232,7 +191,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* User cards instead of table */}
         <div className="divide-y divide-neutral-100">
           {pagination.currentItems.map((user) => (
             <div
@@ -291,7 +249,6 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Pagination */}
         <div className="p-4 border-t border-neutral-200">
           <Pagination
             currentPage={pagination.currentPage}

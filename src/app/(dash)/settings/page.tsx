@@ -4,13 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserRole, isUserRole } from "@/types/profile";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchProfileById } from "@/services/profile";
+import Spinner from "@/components/ui/Spinner";
 
 export default function SettingsPage() {
   const supabase = createClient();
+  const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [role, setRole] = useState<UserRole>("fellow");
   const [saving, setSaving] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [message, setMessage] = useState<{
     text: string;
     type: "success" | "error" | "warning";
@@ -19,29 +24,32 @@ export default function SettingsPage() {
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name, bio, role")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        setDisplayName(profile.display_name || "");
-        setBio(profile.bio || "");
-        const role = profile.role;
-        setRole(role && isUserRole(role) ? role : "fellow");
+      if (user) {
+        setUserId(user.id);
       }
     };
-
-    fetchProfile();
+    getUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["profile", userId],
+    queryFn: () => fetchProfileById(userId!),
+    enabled: !!userId,
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || "");
+      setBio(profile.bio || "");
+      const role = profile.role;
+      setRole(role && isUserRole(role) ? role : "fellow");
+    }
+  }, [profile]);
 
   useEffect(() => {
     return () => {
@@ -83,6 +91,7 @@ export default function SettingsPage() {
 
       if (error) throw error;
 
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       showMessage("Profile updated successfully!", "success");
     } catch {
       showMessage("Failed to update profile", "error");
@@ -98,7 +107,6 @@ export default function SettingsPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Create a notification for admins
       const { data: admins, error: adminError } = await supabase
         .from("profiles")
         .select("id")
@@ -106,10 +114,9 @@ export default function SettingsPage() {
 
       if (adminError) throw adminError;
 
-      // Create notification for EACH admin
       if (admins && admins.length > 0) {
         const notifications = admins.map((admin) => ({
-          user_id: admin.id, // ← Send to admin's ID
+          user_id: admin.id,
           type: "role_request" as const,
           content: `${user.email || "A user"} has requested mentor status`,
         }));
@@ -145,10 +152,17 @@ export default function SettingsPage() {
       return;
     }
 
-    // Sign out and redirect
     await supabase.auth.signOut();
     window.location.href = "/signin";
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" className="text-primary-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -159,7 +173,6 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* Message display */}
       {message && (
         <div
           className={`rounded-lg px-4 py-3 text-sm font-medium ${
@@ -174,7 +187,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Profile Settings */}
       <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-neutral-900 mb-4">Profile</h2>
 
@@ -213,7 +225,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Role Section */}
       <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-neutral-900 mb-4">
           Account Role
@@ -243,6 +254,7 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
       <div className="rounded-lg border border-error/20 bg-error/5 p-6">
         <h2 className="text-lg font-semibold text-error mb-2">Danger Zone</h2>
         <p className="text-sm text-neutral-600 mb-4">
