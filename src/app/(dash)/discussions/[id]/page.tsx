@@ -13,6 +13,7 @@ interface Comment {
   user_id: string;
   profiles: {
     display_name: string | null;
+    role?: "fellow" | "mentor" | "admin";
   } | null;
   votes: Array<{ id: string; user_id: string; value: number }>;
 }
@@ -31,7 +32,7 @@ interface Post {
 }
 
 export default function PostDetailPage() {
-    const params = useParams();
+  const params = useParams();
   const router = useRouter();
   const supabase = createClient();
   const postId = params.id as string;
@@ -86,13 +87,11 @@ export default function PostDetailPage() {
 
     const { data: commentsData } = await supabase
       .from("comments")
-      .select(
-        `
+      .select(`
         *,
-        profiles:user_id (display_name),
+        profiles:user_id (display_name, role),
         votes (id, user_id, value)
-      `,
-      )
+      `)
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
 
@@ -278,6 +277,17 @@ export default function PostDetailPage() {
                   <span className="text-sm font-medium text-neutral-900">
                     {comment.profiles?.display_name || "Anonymous"}
                   </span>
+
+                  {comment.profiles?.role === "mentor" && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 text-[10px] font-medium">
+                      Mentor
+                    </span>
+                  )}
+                  {comment.profiles?.role === "admin" && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-warning/10 text-warning text-[10px] font-medium">
+                      Admin
+                    </span>
+                  )}
                   <span className="text-xs text-neutral-400">
                     {new Date(comment.created_at).toLocaleDateString()}
                   </span>
