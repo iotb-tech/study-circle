@@ -137,14 +137,17 @@ export default function SettingsPage() {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Delete the user's auth account
-    // Note: This requires a server-side function because client can't delete auth users
-    // For now, we'll show a message that this needs admin approval
-    showMessage(
-      "Account deletion requires admin approval. Please contact an admin.",
-      "warning",
-    );
-    setShowDeleteAccountModal(false);
+    const { error } = await supabase.rpc("delete_user", { user_id: user.id });
+
+    if (error) {
+      showMessage(`Failed to delete account: ${error.message}`, "error");
+      setShowDeleteAccountModal(false);
+      return;
+    }
+
+    // Sign out and redirect
+    await supabase.auth.signOut();
+    window.location.href = "/signin";
   };
 
   return (
