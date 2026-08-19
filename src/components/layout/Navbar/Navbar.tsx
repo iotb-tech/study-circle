@@ -98,7 +98,7 @@ export default function Navbar({ user }: NavbarProps) {
 
   return (
     <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6">
-      <MobileSidebar />
+      <MobileSidebar role={user?.role} />
 
       <div className="flex items-center gap-2 sm:gap-3 ml-auto relative">
         {/* Notification bell */}
