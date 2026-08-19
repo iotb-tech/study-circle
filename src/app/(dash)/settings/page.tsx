@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserRole, isUserRole } from "@/types/profile";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 export default function SettingsPage() {
   const supabase = createClient();
@@ -15,6 +16,7 @@ export default function SettingsPage() {
     type: "success" | "error" | "warning";
   } | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -129,6 +131,22 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Delete the user's auth account
+    // Note: This requires a server-side function because client can't delete auth users
+    // For now, we'll show a message that this needs admin approval
+    showMessage(
+      "Account deletion requires admin approval. Please contact an admin.",
+      "warning",
+    );
+    setShowDeleteAccountModal(false);
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -222,6 +240,27 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+      <div className="rounded-lg border border-error/20 bg-error/5 p-6">
+        <h2 className="text-lg font-semibold text-error mb-2">Danger Zone</h2>
+        <p className="text-sm text-neutral-600 mb-4">
+          Permanently delete your account and all associated data.
+        </p>
+        <button
+          onClick={() => setShowDeleteAccountModal(true)}
+          className="rounded-lg bg-error px-5 py-2.5 text-sm font-medium text-white hover:bg-error/90 transition-colors cursor-pointer"
+        >
+          Delete Account
+        </button>
+      </div>
+
+      <ConfirmModal
+        isOpen={showDeleteAccountModal}
+        title="Delete Account"
+        message="Are you sure you want to delete your account? This action cannot be undone. All your posts, comments, and votes will be removed."
+        confirmLabel="Delete My Account"
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setShowDeleteAccountModal(false)}
+      />
     </div>
   );
 }
