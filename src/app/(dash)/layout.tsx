@@ -89,7 +89,7 @@ export default function DashLayout({
     <QueryClientProvider client={queryClient}>
       <div className="flex h-screen overflow-hidden">
         <Sidebar user={user} />
-        <div className="flex-1 flex flex-col overflow-hidden bg-neutral-100">
+        <div className="flex-1 flex flex-col overflow-hidden bg-neutral-100 dark:bg-success/80">
           <Navbar user={user} />
           <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
         </div>

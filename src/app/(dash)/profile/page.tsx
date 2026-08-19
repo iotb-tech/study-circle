@@ -103,7 +103,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-lg border border-neutral-200 bg-white shadow-xl overflow-hidden dark:bg-neutral-800 dark:border-neutral-700">
         <div className="h-32 bg-gradient-to-r from-primary-600 to-primary-700" />
 
         <div className="px-6 pb-6">
@@ -115,7 +115,7 @@ export default function ProfilePage() {
                   alt={profile.display_name || "Avatar"}
                   width={96}
                   height={96}
-                  className="rounded-full border-4 border-white object-cover"
+                  className="rounded-full border-4 border-white object-cover bg-neutral-100/80"
                 />
               ) : (
                 <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-neutral-100">
@@ -126,7 +126,8 @@ export default function ProfilePage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary-500 text-white shadow hover:bg-primary-600 transition-colors disabled:opacity-50"
+                className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary-500 text-white 
+                  shadow hover:bg-primary-600 transition-colors disabled:opacity-50 cursor-pointer"
                 aria-label="Change avatar"
               >
                 {uploading ? (
@@ -152,25 +153,25 @@ export default function ProfilePage() {
             </span>
           </div>
 
-          <h1 className="text-2xl font-bold text-neutral-900">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
             {profile.display_name || "Anonymous"}
           </h1>
 
           {profile.bio && (
             <>
-              <p className="mt-2 text-sm font-semibold text-neutral-700">
+              <p className="mt-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                 Bio:
               </p>
-              <p className="mb-4 text-sm text-neutral-600">{profile.bio}</p>
+              <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">{profile.bio}</p>
             </>
           )}
 
-          <p className="flex items-center gap-2 text-sm text-neutral-500 mt-1">
+          <p className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             <Mail size={14} />
             {email}
           </p>
 
-          <p className="flex items-center gap-2 text-xs text-neutral-400 mt-4">
+          <p className="flex items-center gap-2 text-xs text-neutral-400 mt-4 dark:text-neutral-500">
             <Calendar size={14} />
             Joined {new Date(profile.created_at || "").toLocaleDateString()}
           </p>
