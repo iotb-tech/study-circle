@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import useDebounce from "@/hooks/useDebounce";
 import usePagination from "@/hooks/usePagination";
 import Pagination from "@/components/ui/Pagination";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface UserWithProfile {
   id: string;
@@ -27,6 +28,7 @@ export default function AdminPage() {
     text: string;
     type: "success" | "error";
   } | null>(null);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -84,10 +86,7 @@ export default function AdminPage() {
 
   const pagination = usePagination(filteredUsers, { pageSize: 10 });
 
-  const handleRoleChange = async (
-    userId: string,
-    newRole: UserRole,
-  ) => {
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
     try {
       const { error: updateError } = await supabase
         .from("profiles")
@@ -148,6 +147,22 @@ export default function AdminPage() {
         type: "error",
       });
     }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteUserId) return;
+
+    // Delete user's profile (this cascades to posts, comments, votes)
+    const { error } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", deleteUserId);
+
+    if (!error) {
+      setUsers((prev) => prev.filter((u) => u.id !== deleteUserId));
+    }
+
+    setDeleteUserId(null);
   };
 
   if (loading) {
@@ -249,10 +264,7 @@ export default function AdminPage() {
                 <select
                   value={user.role}
                   onChange={(e) =>
-                    handleRoleChange(
-                      user.id,
-                      e.target.value as UserRole,
-                    )
+                    handleRoleChange(user.id, e.target.value as UserRole)
                   }
                   className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:outline-none focus:border-primary-500 cursor-pointer"
                 >
@@ -260,6 +272,13 @@ export default function AdminPage() {
                   <option value="mentor">Mentor</option>
                   <option value="admin">Admin</option>
                 </select>
+                <button
+                  onClick={() => setDeleteUserId(user.id)}
+                  className="text-error hover:text-error/80 text-sm cursor-pointer"
+                  aria-label={`Delete ${user.display_name || "user"}`}
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}
@@ -280,6 +299,15 @@ export default function AdminPage() {
           />
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!deleteUserId}
+        title="Delete User"
+        message="Are you sure you want to delete this user? All their posts, comments, and votes will be permanently removed."
+        confirmLabel="Delete User"
+        onConfirm={handleDeleteUser}
+        onCancel={() => setDeleteUserId(null)}
+      />
     </div>
   );
 }
