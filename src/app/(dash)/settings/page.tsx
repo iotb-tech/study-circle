@@ -7,6 +7,7 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchProfileById } from "@/services/profile";
 import Spinner from "@/components/ui/Spinner";
+import useTheme from "@/hooks/useTheme";
 
 export default function SettingsPage() {
   const supabase = createClient();
@@ -22,6 +23,7 @@ export default function SettingsPage() {
   } | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const { theme, setLightTheme, setDarkTheme } = useTheme();
 
   useEffect(() => {
     const getUser = async () => {
@@ -167,8 +169,8 @@ export default function SettingsPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Settings</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Settings</h1>
+        <p className="text-sm text-neutral-500 mt-1 dark:text-neutral-200">
           Manage your profile and preferences
         </p>
       </div>
@@ -187,31 +189,33 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-neutral-900 mb-4">Profile</h2>
+      <div className="rounded-lg border border-neutral-200 bg-neutral-50/90 p-6 shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:shadow-xl">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Profile</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
               Display Name
             </label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50"
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:outline-none focus:border-primary-500 
+                focus:ring-2 focus:ring-primary-50 dark:bg-neutral-900 dark:text-white dark:border-neutral-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
               Bio
             </label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Tell the community about yourself..."
-              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50 min-h-[100px] resize-y"
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:outline-none focus:border-primary-500 
+                focus:ring-2 focus:ring-primary-50 min-h-[100px] resize-y dark:bg-neutral-900 dark:text-white dark:border-neutral-600"
             />
           </div>
 
@@ -225,17 +229,63 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+      <div className="rounded-lg border border-neutral-200 bg-neutral-50/90 p-6 shadow-md dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-xl">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+          Appearance
+        </h2>
+
+        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          Theme
+        </p>
+
+        <div className="space-y-2">
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3 transition hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-700">
+            <input
+              type="radio"
+              checked={theme === "light"}
+              onChange={setLightTheme}
+              className="h-4 w-4 accent-primary-500"
+            />
+            <div>
+              <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                Light
+              </p>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                Use the light theme.
+              </p>
+            </div>
+          </label>
+
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 p-3 transition hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-700">
+            <input
+              type="radio"
+              checked={theme === "dark"}
+              onChange={setDarkTheme}
+              className="h-4 w-4 accent-primary-500"
+            />
+            <div>
+              <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                Dark
+              </p>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                Use the dark theme.
+              </p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-neutral-200 bg-neutral-50/90 p-6 shadow-md dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-xl">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
           Account Role
         </h2>
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-neutral-900 capitalize">
+            <p className="text-sm font-medium text-neutral-900 dark:text-white capitalize">
               {role}
             </p>
-            <p className="text-xs text-neutral-500 mt-1">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
               {role === "fellow"
                 ? "You are a fellow. Request mentor status to help others."
                 : role === "mentor"
@@ -255,9 +305,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-error/20 bg-error/5 p-6">
+      <div className="rounded-lg border border-error/20 bg-error/5 p-6 dark:bg-error/10 dark:shadow-xl shadow-xl">
         <h2 className="text-lg font-semibold text-error mb-2">Danger Zone</h2>
-        <p className="text-sm text-neutral-600 mb-4">
+        <p className="text-sm text-neutral-600 dark:text-neutral-200 mb-4 mb-4">
           Permanently delete your account and all associated data.
         </p>
         <button
