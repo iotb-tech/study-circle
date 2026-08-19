@@ -21,6 +21,7 @@ This folder contains SQL migration files for the Study Circle database.
 | `04_user_roles_and_bio.sql` | Add role (fellow/mentor/admin), bio, and notifications | Run fourth |
 | `05_fix_notifications_rls.sql` | Fix notifications RLS for cross-user notifications | Run fifth |
 | `06_admin_update_policy.sql` | Allow admins to update any profile | Run sixth |
+| `07_bookmarks.sql` | Bookmarks table for saving posts | Run seventh |
 
 ---
 
