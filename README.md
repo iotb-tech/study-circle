@@ -37,6 +37,61 @@ Study Circle provides a searchable knowledge base where fellows can:
 - Search existing questions and answers
 - Comment on posts
 - Upvote helpful content
+## Project Structure  
+
+text
+study-circle/
+├── public/
+│   └── screenshots/              # Survey dashboard images
+├── src/
+│   ├── app/
+│   │   ├── (auth)/               # Sign in / Sign up pages
+│   │   ├── (dash)/               # Protected pages (dashboard, discussions, profile, settings)
+│   │   ├── coming-soon/          # Placeholder page
+│   │   ├── layout.tsx            # Root layout
+│   │   └── page.tsx              # Landing page
+│   ├── components/
+│   │   ├── Dashboard/            # Dashboard KPIs and charts
+│   │   ├── Discussions/          # Post creation, cards, search and filtering
+│   │   ├── LandingPage/          # Public landing page sections
+│   │   ├── auth/                 # Authentication layouts
+│   │   ├── layout/               # Navbar and Sidebar components
+│   │   ├── providers/            # TanStack Query provider
+│   │   └── ui/                   # Reusable UI components
+│   ├── hooks/
+│   │   ├── useDebounce.ts
+│   │   ├── useLocalStorage.ts
+│   │   └── usePagination.ts
+│   ├── lib/
+│   │   ├── dashboard-data.ts
+│   │   ├── env.ts
+│   │   ├── utils.ts
+│   │   └── supabase/
+│   │       ├── client.ts         # Browser client
+│   │       ├── middleware.ts     # Auth middleware helpers
+│   │       └── server.ts         # Server client
+│   ├── services/                 # Data fetching and mutations
+│   │   ├── comments.ts
+│   │   ├── dashboard.ts
+│   │   ├── postDetail.ts
+│   │   ├── posts.ts
+│   │   └── profile.ts
+│   └── types/
+│       ├── auth.ts
+│       ├── database.types.ts     # Generated Supabase types
+│       ├── post.ts
+│       └── profile.ts
+├── supabase/
+│   ├── README.md                 # Migration file guide
+│   └── migrations/
+├── .env.example                  # Environment variable template
+├── eslint.config.mjs
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+├── README.md
+├── tailwind.config.ts
+└── tsconfig.json
 
 ---
 
@@ -120,7 +175,13 @@ Row Level Security enabled on all tables:
 - Post authors can moderate comments on their posts
 
 ---
+## Environment Variables
 
+Create a `.env.local` file in the project root and add:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ## Development Setup
 
 ```bash
@@ -145,7 +206,22 @@ npm run dev
 ```
 
 ---
+## Data Fetching
 
+Study Circle uses TanStack Query for server-state management and data fetching.
+
+### Benefits
+
+- Automatic caching for improved performance
+- Background refetching when data changes
+- Built-in loading and error handling states
+- Query invalidation after mutations (posts, comments, votes, profile updates)
+- Reduced duplicate API requests across pages
+
+The `QueryProvider` is configured at the application level so all pages and components can access query state consistently.
+
+
+---
 ## Team Workflow
 
 - `main` branch is protected and all development go through `dev` branch
@@ -158,6 +234,20 @@ npm run dev
 ## Migration Workflow
 
 Database migrations live in `supabase/migrations/`. Apply them via Supabase SQL Editor in order.
+
+## Deployment
+
+The application is designed for deployment on Vercel.
+
+### Deployment Steps
+
+1. Push the latest code to the `main` branch
+2. Connect the repository to Vercel
+3. Configure the required environment variables
+4. Trigger a deployment
+
+Production URL:
+
 
 ### Files
 
@@ -174,3 +264,24 @@ Before running `seed-data.sql`:
 5. Run in Supabase SQL Editor
 
 See `supabase/migrations/README.md` for detailed instructions.
+
+---
+
+## Deployment
+
+The application is designed for deployment on Vercel.
+
+### Deployment Steps
+
+1. Push the latest code to the `main` branch
+2. Connect the repository to Vercel
+3. Configure the required environment variables
+4. Trigger a deployment
+
+Production URL:
+
+---
+
+## License
+
+This project was built as part of the IoTB Tech Fellowship Program.
