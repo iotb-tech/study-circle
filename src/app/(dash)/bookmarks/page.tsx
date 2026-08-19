@@ -1,35 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import PostCard from "@/components/Discussions/PostCard";
-
-interface BookmarkItem {
-  id: string;
-  title: string;
-  body: string;
-  tags: string[];
-  created_at: string;
-  profiles: {
-    display_name: string | null;
-    avatar_url: string | null;
-    role?: "fellow" | "mentor" | "admin";
-  } | null;
-  comments_count?: Array<{ count: number }>;
-  votes_count?: Array<{ count: number }>;
-}
+import { useQuery } from "@tanstack/react-query";
+import Spinner from "@/components/ui/Spinner";
 
 export default function BookmarksPage() {
   const supabase = createClient();
-  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchBookmarks = async () => {
+  const { data: bookmarks = [], isLoading } = useQuery({
+    queryKey: ["bookmarks"],
+    queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) return [];
 
       const { data, error } = await supabase
         .from("bookmarks")
@@ -46,52 +31,40 @@ export default function BookmarksPage() {
         )
         .eq("user_id", user.id);
 
-      if (error) {
-        console.error("Error fetching bookmarks:", error.message);
-        setLoading(false);
-        return;
-      }
+      if (error) throw error;
 
-      if (data) {
-        const bookmarkedPosts = data
-          .map((item) => item.posts)
-          .filter((post): post is NonNullable<typeof post> => post !== null)
-          .map((post) => ({
-            id: post.id,
-            title: post.title,
-            body: post.body,
-            tags: post.tags,
-            created_at: post.created_at,
-            profiles: post.profiles
-              ? {
-                  display_name: post.profiles.display_name,
-                  avatar_url: post.profiles.avatar_url,
-                  role: post.profiles.role as "fellow" | "mentor" | "admin",
-                }
-              : null,
-            comments_count: post.comments_count,
-            votes_count: post.votes_count,
-          }));
+      return data
+        .map((item) => item.posts)
+        .filter((post): post is NonNullable<typeof post> => post !== null)
+        .map((post) => ({
+          id: post.id,
+          title: post.title,
+          body: post.body,
+          tags: post.tags,
+          created_at: post.created_at,
+          profiles: post.profiles
+            ? {
+                display_name: post.profiles.display_name,
+                avatar_url: post.profiles.avatar_url,
+                role: post.profiles.role as "fellow" | "mentor" | "admin",
+              }
+            : null,
+          comments_count: post.comments_count,
+          votes_count: post.votes_count,
+        }));
+    },
+  });
 
-        setBookmarks(bookmarkedPosts);
-      }
-      setLoading(false);
-    };
-
-    fetchBookmarks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-t-transparent" />
+        <Spinner size="lg" className="text-primary-500" />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-neutral-200 rounded-xl px-4 py-8">
+    <main className="min-h-screen rounded-xl px-4 py-8">
       <div className="mx-auto max-w-4xl">
         <h1 className="text-3xl font-bold text-neutral-900 mb-6">
           Your Bookmarks
