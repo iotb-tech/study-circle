@@ -4,52 +4,38 @@ import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { User, Camera, Loader2, Mail, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Profile, isUserRole } from "@/types/profile";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchProfileById } from "@/services/profile";
+import Spinner from "@/components/ui/Spinner";
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const supabase = createClient();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Create Supabase client inside component
-  const supabase = createClient();
-
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error("Not authenticated");
-
-        setEmail(user.email ?? "");
-
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url, role, bio, created_at")
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-
-        const role = data.role;
-        setProfile({
-          ...data,
-          role: role && isUserRole(role) ? role : "fellow",
-        } as Profile);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load profile");
-      } finally {
-        setLoading(false);
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        setEmail(user.email || "");
       }
     };
-
-    fetchProfile();
+    getUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["profile", userId],
+    queryFn: () => fetchProfileById(userId!),
+    enabled: !!userId,
+  });
 
   const handleAvatarUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -92,7 +78,7 @@ export default function ProfilePage() {
 
       if (updateError) throw updateError;
 
-      setProfile((prev) => (prev ? { ...prev, avatar_url: avatarUrl } : prev));
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload avatar");
     } finally {
@@ -101,18 +87,10 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  if (isLoading || !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
-      </div>
-    );
-  }
-
-  if (error && !profile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-red-500">
-        {error}
+        <Spinner size="lg" className="text-primary-500" />
       </div>
     );
   }
@@ -125,17 +103,13 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Header */}
       <div className="rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden">
-        {/* Cover banner */}
         <div className="h-32 bg-gradient-to-r from-primary-600 to-primary-700" />
 
-        {/* Profile info */}
         <div className="px-6 pb-6">
-          {/* Avatar */}
           <div className="flex justify-between items-end -mt-12 mb-4">
             <div className="relative">
-              {profile?.avatar_url ? (
+              {profile.avatar_url ? (
                 <Image
                   src={profile.avatar_url}
                   alt={profile.display_name || "Avatar"}
@@ -171,23 +145,22 @@ export default function ProfilePage() {
               />
             </div>
 
-            {/* Role badge */}
             <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${roleStyles[profile?.role || "fellow"]}`}
+              className={`px-3 py-1 rounded-full text-xs font-medium ${roleStyles[profile.role || "fellow"]}`}
             >
-              {profile?.role || "fellow"}
+              {profile.role || "fellow"}
             </span>
           </div>
 
-          {/* Name and email */}
           <h1 className="text-2xl font-bold text-neutral-900">
-            {profile?.display_name || "Anonymous"}
+            {profile.display_name || "Anonymous"}
           </h1>
 
-          {/* Bio */}
-          {profile?.bio && (
+          {profile.bio && (
             <>
-              <p className="mt-2 text-sm font-semibold text-neutral-700">Bio:</p>
+              <p className="mt-2 text-sm font-semibold text-neutral-700">
+                Bio:
+              </p>
               <p className="mb-4 text-sm text-neutral-600">{profile.bio}</p>
             </>
           )}
@@ -197,15 +170,13 @@ export default function ProfilePage() {
             {email}
           </p>
 
-          {/* Joined date */}
           <p className="flex items-center gap-2 text-xs text-neutral-400 mt-4">
             <Calendar size={14} />
-            Joined {new Date(profile?.created_at || "").toLocaleDateString()}
+            Joined {new Date(profile.created_at || "").toLocaleDateString()}
           </p>
         </div>
       </div>
 
-      {/* Error message */}
       {error && (
         <div className="mt-4 rounded-lg bg-error/10 border border-error/20 px-4 py-3 text-sm text-error">
           {error}
