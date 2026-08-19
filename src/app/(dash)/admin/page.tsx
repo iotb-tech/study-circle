@@ -87,7 +87,6 @@ export default function AdminPage() {
   const handleRoleChange = async (
     userId: string,
     newRole: UserRole,
-    userEmail?: string,
   ) => {
     try {
       const { error: updateError } = await supabase
@@ -253,7 +252,6 @@ export default function AdminPage() {
                     handleRoleChange(
                       user.id,
                       e.target.value as UserRole,
-                      user.email,
                     )
                   }
                   className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:outline-none focus:border-primary-500 cursor-pointer"
