@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Bell, LogOut, X } from "lucide-react";
 import MobileSidebar from "../Sidebar/MobileSidebar";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface Notification {
   id: string;
@@ -32,6 +33,7 @@ export default function Navbar({ user }: NavbarProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const [profile, setProfile] = useState(user);
 
@@ -221,7 +223,7 @@ export default function Navbar({ user }: NavbarProps) {
 
         {/* Logout */}
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutModal(true)}
           className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
           aria-label="Logout"
         >
@@ -315,6 +317,15 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        title="Sign Out"
+        message="Are you sure you want to sign out of Study Circle?"
+        confirmLabel="Sign Out"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </header>
   );
 }
