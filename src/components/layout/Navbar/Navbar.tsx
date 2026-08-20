@@ -241,17 +241,17 @@ export default function Navbar({ user }: NavbarProps) {
           />
 
           {/* Modal content */}
-          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+          <div className="relative bg-white dark:bg-neutral-800 dark:border dark:border-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
-              <h3 className="text-lg font-semibold text-neutral-900">
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
                 Notifications
               </h3>
               <div className="flex items-center gap-3">
                 {notifications.length > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs font-medium text-primary-600 hover:text-primary-700 cursor-pointer"
+                    className="text-xs font-medium text-primary-700 hover:underline cursor-pointer"
                   >
                     Mark all as read
                   </button>
@@ -271,7 +271,7 @@ export default function Navbar({ user }: NavbarProps) {
               {notifications.length === 0 ? (
                 <div className="text-center py-12">
                   <Bell size={48} className="mx-auto text-neutral-300 mb-4" />
-                  <h4 className="text-sm font-medium text-neutral-700 mb-2">
+                  <h4 className="text-sm font-medium text-neutral-400 mb-2">
                     No notifications yet
                   </h4>
                   <p className="text-xs text-neutral-500">
@@ -285,13 +285,13 @@ export default function Navbar({ user }: NavbarProps) {
                       key={notification.id}
                       className={`rounded-lg border border-neutral-200 p-4 ${
                         !notification.read
-                          ? "bg-primary-50/50 border-primary-100"
+                          ? "bg-primary-50/50 border-primary-100 dark:bg-primary-700/40"
                           : "bg-white"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <p className="text-sm text-neutral-700">
+                          <p className="text-sm text-neutral-700 dark:text-neutral-200">
                             {notification.content}
                           </p>
                           <p className="text-xs text-neutral-400 mt-1">
@@ -303,7 +303,7 @@ export default function Navbar({ user }: NavbarProps) {
                         {!notification.read && (
                           <button
                             onClick={() => markAsRead(notification.id)}
-                            className="text-xs font-medium text-primary-600 hover:text-primary-700 shrink-0 cursor-pointer"
+                            className="text-xs font-medium text-primary-600 hover:underline shrink-0 cursor-pointer"
                           >
                             Mark as read
                           </button>
