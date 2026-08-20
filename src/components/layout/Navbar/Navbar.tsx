@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Bell, LogOut, X } from "lucide-react";
 import MobileSidebar from "../Sidebar/MobileSidebar";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface Notification {
   id: string;
@@ -32,6 +33,39 @@ export default function Navbar({ user }: NavbarProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const [profile, setProfile] = useState(user);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setProfile(user);
+      return;
+    }
+
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url, role")
+        .eq("id", user.id)
+        .single();
+
+      if (data) {
+        setProfile({
+          ...user,
+          display_name: data.display_name,
+          avatar_url: data.avatar_url,
+          role:
+            data.role === "mentor" || data.role === "admin"
+              ? data.role
+              : "fellow",
+        });
+      }
+    };
+
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -104,8 +138,8 @@ export default function Navbar({ user }: NavbarProps) {
     router.refresh();
   };
 
-  const displayName = user?.display_name || "Fellow";
-  const avatarUrl = user?.avatar_url || null;
+  const displayName = profile?.display_name || "Fellow";
+  const avatarUrl = profile?.avatar_url || null;
   const initials = displayName
     .split(" ")
     .map((n: string) => n[0])
@@ -141,8 +175,16 @@ export default function Navbar({ user }: NavbarProps) {
   };
 
   return (
-    <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6">
+    <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6 dark:bg-success/70 dark:border-neutral-600/40">
       <MobileSidebar role={user?.role} />
+      <Image
+        src="/assets/study-circle.png"
+        alt="Study Circle Logo"
+        width={40}
+        height={40}
+        style={{ width: "auto", height: "auto" }}
+        priority
+      />
 
       <div className="flex items-center gap-2 sm:gap-3 ml-auto relative">
         {/* Notification bell */}
@@ -153,7 +195,9 @@ export default function Navbar({ user }: NavbarProps) {
         >
           <Bell size={18} className="text-neutral-600" />
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full" />
+            <span className="absolute -top-1 -right-1 bg-error text-white text-[10px] font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
           )}
         </button>
 
@@ -179,7 +223,7 @@ export default function Navbar({ user }: NavbarProps) {
 
         {/* Logout */}
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutModal(true)}
           className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
           aria-label="Logout"
         >
@@ -273,6 +317,15 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        title="Sign Out"
+        message="Are you sure you want to sign out of Study Circle?"
+        confirmLabel="Sign Out"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </header>
   );
 }

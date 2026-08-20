@@ -41,7 +41,7 @@ export default function MobileSidebar({ role }: MobileSidebarProps) {
       {/* Hamburger button */}
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden p-2 rounded-lg hover:bg-neutral-100"
+        className="md:hidden p-2 rounded-lg hover:bg-neutral-100 cursor-pointer"
         aria-label="Open menu"
       >
         <Menu size={20} className="text-neutral-600" />
@@ -69,7 +69,7 @@ export default function MobileSidebar({ role }: MobileSidebarProps) {
           </span>
           <button
             onClick={() => setOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-neutral-800"
+            className="p-1.5 rounded-lg hover:bg-neutral-800 cursor-pointer"
           >
             <X size={18} className="text-neutral-400" />
           </button>

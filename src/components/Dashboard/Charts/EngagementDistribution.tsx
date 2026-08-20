@@ -24,7 +24,7 @@ export default function EngagementDistribution({
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
+    <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-xl dark:bg-neutral-300">
       <h3 className="text-sm font-medium text-neutral-600 mb-4">
         Engagement Distribution
       </h3>

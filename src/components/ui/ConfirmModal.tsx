@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
@@ -19,19 +22,37 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={(e) => {
+          e.stopPropagation();
+          onCancel();
+        }}
+      />
+
+      <div
+        className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3 className="text-lg font-semibold text-neutral-900 mb-2">{title}</h3>
         <p className="text-sm text-neutral-600 mb-6">{message}</p>
 
         <div className="flex justify-end gap-3">
           <button
-            onClick={onCancel}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel();
+            }}
             className="px-4 py-2 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
           >
             {cancelLabel}
@@ -44,6 +65,7 @@ export default function ConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

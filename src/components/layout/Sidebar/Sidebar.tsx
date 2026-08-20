@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import SidebarNav from "./SidebarNav";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface SidebarProps {
   user: {
@@ -20,21 +22,57 @@ const roleStyles = {
 };
 
 export default function Sidebar({ user }: SidebarProps) {
-  const displayName = user?.display_name || "Fellow";
-  const avatarUrl = user?.avatar_url || null;
+  const [profile, setProfile] = useState(user);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setProfile(user);
+      return;
+    }
+
+    const supabase = createClient();
+
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url, role")
+        .eq("id", user.id)
+        .single();
+
+      if (data) {
+        setProfile({
+          ...user,
+          display_name: data.display_name,
+          avatar_url: data.avatar_url,
+          role:
+            data.role === "mentor" || data.role === "admin"
+              ? data.role
+              : "fellow",
+        });
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const displayName = profile?.display_name || "Fellow";
+  const avatarUrl = profile?.avatar_url || null;
+
   const initials = displayName
     .split(" ")
-    .map((n: string) => n[0])
+    .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
 
+  const role = profile?.role || "fellow";
+
   return (
     <aside className="hidden md:flex md:flex-col w-64 bg-neutral-900">
       {/* Logo */}
-      <div className="p-6 border-b border-neutral-800">
+      <div className="p-6 flex items-center justify-center border-b border-neutral-600 bg-success/40">
         <Link href="/" className="flex items-center">
-          <span className="text-xl font-bold text-white">
+          <span className="text-2xl font-bold text-white">
             study<span className="text-primary-500">Circle</span>
           </span>
         </Link>
@@ -42,7 +80,7 @@ export default function Sidebar({ user }: SidebarProps) {
 
       {/* Navigation */}
       <div className="flex-1 p-4">
-        <SidebarNav role={user?.role} />
+        <SidebarNav role={role} />
       </div>
 
       {/* User info */}

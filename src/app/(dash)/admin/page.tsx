@@ -156,8 +156,8 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Admin Panel</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">Admin Panel</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-100 mt-1">
           Manage user roles and permissions
         </p>
       </div>
@@ -174,28 +174,28 @@ export default function AdminPage() {
         </div>
       )}
 
-      <div className="rounded-lg border border-neutral-200 bg-neutral-100 shadow-sm">
-        <div className="p-4 border-b border-neutral-200">
+      <div className="rounded-lg border border-neutral-400 bg-neutral-100 shadow-xl dark:bg-neutral-800">
+        <div className="p-4 border-b border-neutral-400">
           <div className="relative">
             <Search
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-50"
             />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, email, or role..."
-              className="w-full rounded-lg border border-neutral-200 pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50"
+              className="w-full rounded-lg border border-neutral-200 pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-50 dark:text-neutral-200"
             />
           </div>
         </div>
 
-        <div className="divide-y divide-neutral-100">
+        <div className="divide-y divide-neutral-400 dark:bg-neutral-800">
           {pagination.currentItems.map((user) => (
             <div
               key={user.id}
-              className="flex items-center justify-between px-6 py-4 hover:bg-neutral-50 transition-colors"
+              className="flex items-center justify-between px-6 py-4 hover:bg-neutral-200 hover:dark:bg-neutral-600 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
@@ -204,10 +204,10 @@ export default function AdminPage() {
                   </span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">
+                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-200">
                     {user.display_name || "Anonymous"}
                   </p>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-xs text-neutral-400 dark:text-neutral-200">
                     {user.email || "No email"}
                   </p>
                 </div>
@@ -231,7 +231,7 @@ export default function AdminPage() {
                   onChange={(e) =>
                     handleRoleChange(user.id, e.target.value as UserRole)
                   }
-                  className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:outline-none focus:border-primary-500 cursor-pointer"
+                  className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:outline-none dark:bg-neutral-700 dark:text-neutral-200 focus:border-primary-500 cursor-pointer"
                 >
                   <option value="fellow">Fellow</option>
                   <option value="mentor">Mentor</option>
@@ -239,7 +239,7 @@ export default function AdminPage() {
                 </select>
                 <button
                   onClick={() => setDeleteUserId(user.id)}
-                  className="text-error hover:text-error/80 text-sm cursor-pointer"
+                  className="text-error dark:text-white hover:text-error/80 text-sm cursor-pointer hover:dark:bg-neutral-900 px-3 py-2 rounded-lg"
                   aria-label={`Delete ${user.display_name || "user"}`}
                 >
                   Delete

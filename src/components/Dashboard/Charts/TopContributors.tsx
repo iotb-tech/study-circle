@@ -21,7 +21,7 @@ interface TopContributorsProps {
 
 export default function TopContributors({ data }: TopContributorsProps) {
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
+    <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-xl dark:bg-neutral-300">
       <h3 className="mb-4 text-sm font-medium text-neutral-600">
         Top Contributors
       </h3>
@@ -49,7 +49,8 @@ export default function TopContributors({ data }: TopContributorsProps) {
               tick={{ fontSize: 12, fill: "#52525b" }}
               tickLine={false}
               axisLine={false}
-              width={100}
+              width={50}
+              dx={-30}
             />
 
             <Tooltip

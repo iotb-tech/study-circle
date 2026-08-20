@@ -64,13 +64,23 @@ export default function CreatePostForm() {
         return;
       }
 
+      // Get the user's role
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("role, display_name")
+        .eq("id", user.id)
+        .single();
+
+      const userRole = userProfile?.role || "fellow";
+      const displayName = userProfile?.display_name || "A user";
+
       const { data: post, error } = await supabase
         .from("posts")
         .insert({
           user_id: user.id,
           title: data.title,
           body: data.body,
-          tags,
+          tags: tags,
         })
         .select()
         .single();
@@ -80,7 +90,44 @@ export default function CreatePostForm() {
         return;
       }
 
-      closeForm();
+      // Send notifications based on role
+      if (userRole === "fellow") {
+        // Fellow creates post → notify all mentors and admins
+        const { data: mentorsAndAdmins } = await supabase
+          .from("profiles")
+          .select("id")
+          .in("role", ["mentor", "admin"]);
+
+        if (mentorsAndAdmins && mentorsAndAdmins.length > 0) {
+          const notifications = mentorsAndAdmins.map((person) => ({
+            user_id: person.id,
+            type: "mention",
+            content: `(fellow) ${displayName} posted a new question: "${data.title}"`,
+          }));
+
+          await supabase.from("notifications").insert(notifications);
+        }
+      } else if (userRole === "mentor" || userRole === "admin") {
+        // Mentor or admin creates post → notify all fellows
+        const { data: fellows } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("role", "fellow");
+
+        if (fellows && fellows.length > 0) {
+          const notifications = fellows.map((fellow) => ({
+            user_id: fellow.id,
+            type: "mention",
+            content: `(${userRole}) ${displayName} posted: "${data.title}"`,
+          }));
+
+          await supabase.from("notifications").insert(notifications);
+        }
+      }
+
+      reset();
+      setTags([]);
+      setShowForm(false);
       router.push(`/discussions/${post.id}`);
       router.refresh();
     } catch (error) {
