@@ -175,6 +175,14 @@ export default function Navbar({ user }: NavbarProps) {
   return (
     <header className="flex h-16 items-center gap-4 bg-white border-b border-neutral-200 px-4 sm:px-6 dark:bg-success/70 dark:border-neutral-600/40">
       <MobileSidebar role={user?.role} />
+      <Image
+        src="/assets/study-circle.png"
+        alt="Study Circle Logo"
+        width={40}
+        height={40}
+        style={{ width: "auto", height: "auto" }}
+        priority
+      />
 
       <div className="flex items-center gap-2 sm:gap-3 ml-auto relative">
         {/* Notification bell */}

@@ -70,9 +70,9 @@ export default function Sidebar({ user }: SidebarProps) {
   return (
     <aside className="hidden md:flex md:flex-col w-64 bg-neutral-900">
       {/* Logo */}
-      <div className="p-6 border-b border-neutral-800">
+      <div className="p-6 flex items-center justify-center border-b border-neutral-600 bg-success/40">
         <Link href="/" className="flex items-center">
-          <span className="text-xl font-bold text-white">
+          <span className="text-2xl font-bold text-white">
             study<span className="text-primary-500">Circle</span>
           </span>
         </Link>
