@@ -154,6 +154,17 @@ export default function PostDetailPage() {
     if (!newComment.trim() || !currentUserId) return;
 
     setSubmittingComment(true);
+
+    // Get the commenter's role
+    const { data: commenterProfile } = await supabase
+      .from("profiles")
+      .select("role, display_name")
+      .eq("id", currentUserId)
+      .single();
+
+    const commenterRole = commenterProfile?.role || "fellow";
+    const commenterName = commenterProfile?.display_name || "A user";
+
     const { error } = await supabase.from("comments").insert({
       post_id: postId,
       user_id: currentUserId,
@@ -163,6 +174,24 @@ export default function PostDetailPage() {
     if (!error) {
       setNewComment("");
       invalidateComments();
+
+      // If mentor or admin comments, notify all fellows
+      if (commenterRole === "mentor" || commenterRole === "admin") {
+        const { data: fellows } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("role", "fellow");
+
+        if (fellows && fellows.length > 0) {
+          const notifications = fellows.map((fellow) => ({
+            user_id: fellow.id,
+            type: "mention",
+            content: `(${commenterRole}) ${commenterName} commented on a post`,
+          }));
+
+          await supabase.from("notifications").insert(notifications);
+        }
+      }
     }
     setSubmittingComment(false);
   };
