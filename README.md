@@ -8,6 +8,12 @@ Fellows ask questions in class group chats where answers get buried, the same qu
 
 ---
 
+## Deployment
+
+Production URL:
+
+---
+
 ## Validation
 
 We surveyed 7 fellows across the Web Development and Data Analytics tracks (mix of 3–6 month and 6+ month/alumni tenure). Key findings:
@@ -37,9 +43,12 @@ Study Circle provides a searchable knowledge base where fellows can:
 - Search existing questions and answers
 - Comment on posts
 - Upvote helpful content
+
+---
+
 ## Project Structure  
 
-text
+```text
 study-circle/
 ├── public/
 │   └── screenshots/              # Survey dashboard images
@@ -92,6 +101,7 @@ study-circle/
 ├── README.md
 ├── tailwind.config.ts
 └── tsconfig.json
+```
 
 ---
 
@@ -175,37 +185,39 @@ Row Level Security enabled on all tables:
 - Post authors can moderate comments on their posts
 
 ---
-## Environment Variables
 
-Create a `.env.local` file in the project root and add:
+## Project Setup
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-## Development Setup
+### 1. Clone the repository
 
 ```bash
-# 1. Clone the repository
-
 git clone https://github.com/iotb-tech/study-circle.git
 cd study-circle
-
-# 2. install dependencies
-
-npm install
-
-# 3. Copy `.env.example` to `.env.local` and add Supabase keys
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-
-# 4. Start dev server
-
-npm run dev
-
-# 5. Apply migrations in `supabase/migrations/` via Supabase SQL Editor
 ```
 
+### 2. install dependencies
+
+```bash
+npm install
+```
+
+### 3. Copy `.env.example` to `.env.local` and add Supabase keys
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+### 4. Start dev server
+
+```bash
+npm run dev
+```
+
+### 5. Apply migrations in `supabase/migrations/` via Supabase SQL Editor
+
 ---
+
 ## Data Fetching
 
 Study Circle uses TanStack Query for server-state management and data fetching.
@@ -222,6 +234,7 @@ The `QueryProvider` is configured at the application level so all pages and comp
 
 
 ---
+
 ## Team Workflow
 
 - `main` branch is protected and all development go through `dev` branch
@@ -235,25 +248,17 @@ The `QueryProvider` is configured at the application level so all pages and comp
 
 Database migrations live in `supabase/migrations/`. Apply them via Supabase SQL Editor in order.
 
-## Deployment
+### Migration Files
 
-The application is designed for deployment on Vercel.
-
-### Deployment Steps
-
-1. Push the latest code to the `main` branch
-2. Connect the repository to Vercel
-3. Configure the required environment variables
-4. Trigger a deployment
-
-Production URL:
-
-
-### Files
-
-- `first-schema.sql` — Core tables, indexes, RLS, full-text search
-- `seed-data.sql` — Development seed data with realistic posts, comments, and votes
-- `03_avatars_bucket` Creating a storage bucket in Supabase to store the user's profile image
+- `01_first_schema.sql`
+- `02_seed_data.sql`
+- `03_avatars_bucket`
+- `04_user_roles_and_bio.sql`
+- `05_fix_notifications_rls.sql`
+- `06_admin_update_policy.sql`
+- `07_bookmarks.sql`
+- `08_add_email_to_profiles.sql`
+- `09_delete_user_function.sql`
 
 Before running `seed-data.sql`:
 
@@ -281,7 +286,3 @@ The application is designed for deployment on Vercel.
 Production URL:
 
 ---
-
-## License
-
-This project was built as part of the IoTB Tech Fellowship Program.
