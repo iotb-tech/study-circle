@@ -5,6 +5,9 @@ import { Bookmark, MessageSquare, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PostCardProps {
   post: {
@@ -27,6 +30,8 @@ interface PostCardProps {
 export default function PostCard({ post, onTagClick }: PostCardProps) {
   const supabase = createClient();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [showRemoveBookmarkModal, setShowRemoveBookmarkModal] = useState(false);
   const displayName = post.profiles?.display_name || "Anonymous";
   const initials = displayName.charAt(0).toUpperCase();
   const truncatedBody =
@@ -39,7 +44,23 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
   );
   const isBookmarked = bookmarks.some((b) => b.id === post.id);
 
-  // Replace the localStorage bookmark with backend:
+  const handleConfirmRemoveBookmark = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase
+      .from("bookmarks")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("post_id", post.id);
+
+    setBookmarks((prev) => prev.filter((b) => b.id !== post.id));
+    setShowRemoveBookmarkModal(false);
+    queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+  };
+
   const toggleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -66,6 +87,8 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
 
       setBookmarks((prev) => [...prev, post]);
     }
+
+    queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
   };
 
   return (
@@ -139,7 +162,14 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
             {post.votes_count?.[0]?.count || 0}
           </span>
           <button
-            onClick={toggleBookmark}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isBookmarked) {
+                setShowRemoveBookmarkModal(true);
+              } else {
+                toggleBookmark(e);
+              }
+            }}
             aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
             title="Bookmark"
             className="flex items-center gap-1 text-neutral-400 transition-colors hover:text-primary-600 cursor-pointer"
@@ -153,6 +183,15 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showRemoveBookmarkModal}
+        title="Remove Bookmark"
+        message="Are you sure you want to remove this bookmark?"
+        confirmLabel="Remove"
+        onConfirm={handleConfirmRemoveBookmark}
+        onCancel={() => setShowRemoveBookmarkModal(false)}
+      />
     </div>
   );
 }
