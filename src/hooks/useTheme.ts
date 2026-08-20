@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+"use client";
+
+import { useLayoutEffect } from "react";
 import useLocalStorage from "./useLocalStorage";
 
 type Theme = "light" | "dark";
@@ -6,14 +8,10 @@ type Theme = "light" | "dark";
 export default function useTheme() {
   const [theme, setTheme] = useLocalStorage<Theme>("theme", "light");
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
 
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    root.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
   const toggleTheme = () => {
