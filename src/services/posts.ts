@@ -31,5 +31,18 @@ export const fetchPosts = async (): Promise<Post[]> => {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data as unknown as Post[];
+  // Sort by vote count (highest first), then by created_at for ties
+  const sortedPosts = (data as unknown as Post[]).sort((a, b) => {
+    const votesA = a.votes_count?.[0]?.count || 0;
+    const votesB = b.votes_count?.[0]?.count || 0;
+
+    if (votesB !== votesA) {
+      return votesB - votesA;
+    }
+
+    // If same vote count, sort by newest first
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  return sortedPosts;
 };
