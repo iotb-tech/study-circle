@@ -100,7 +100,7 @@ export default function DiscussionsPage() {
       />
 
       {!hasSearchQuery && selectedTags.length === 0 && posts.length > 0 && (
-        <div className="text-center py-12 bg-neutral-100 rounded-lg border border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700">
+        <div className="text-center py-12 bg-neutral-100 rounded-lg border border-neutral-200 dark:bg-neutral-600 dark:border-neutral-700">
           <Search size={48} className="mx-auto text-neutral-300 mb-4" />
           <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-200 mb-2">
             Search for posts

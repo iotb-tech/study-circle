@@ -71,7 +71,7 @@ export default function BookmarksPage() {
         </h1>
 
         {bookmarks.length === 0 ? (
-          <div className="text-center py-20 text-neutral-400">
+          <div className="text-center py-20 text-neutral-400 dark:text-neutral-200 italic">
             <p className="text-lg">
               You haven&apos;t bookmarked any posts yet.
             </p>
