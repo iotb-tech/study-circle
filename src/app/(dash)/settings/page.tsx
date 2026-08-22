@@ -365,11 +365,11 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+      <div className="rounded-lg border border-neutral-200 bg-white dark:bg-neutral-800 dark:border-neutral-800 p-6 shadow-xl">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
           Report a User
         </h2>
-        <p className="text-sm text-neutral-600 mb-4">
+        <p className="text-sm text-neutral-600 dark:text-neutral-200 mb-4">
           Report inappropriate behavior or content to the admins.
         </p>
         <button
@@ -455,7 +455,7 @@ export default function SettingsPage() {
                     !reportReason.trim() ||
                     submittingReport
                   }
-                  // className="px-4 py-2 rounded-lg bg-warning text-white text-sm font-medium hover:bg-warning/90 transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-lg bg-warning text-white text-sm font-medium hover:bg-warning/90 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {submittingReport ? "Submitting..." : "Submit Report"}
                 </Button>

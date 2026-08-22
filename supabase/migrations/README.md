@@ -24,6 +24,9 @@ This folder contains SQL migration files for the Study Circle database.
 | `07_bookmarks.sql`             | Bookmarks table for saving posts                                        | Run seventh |
 | `08_add_email_to_profiles.sql` | Add email column to profiles for admin display                          |
 | `09_delete_user_function.sql`  | Database function for proper user deletion                              |
+| `10_admin_content_moderation.sql` | Allow admins to delete any post or comment    |
+| `11_user_reports.sql` | Reports table for user reporting system |
+| `12_suspend_user.sql` | Add suspended column to profiles |
 
 ---
 
@@ -37,6 +40,7 @@ This folder contains SQL migration files for the Study Circle database.
 - **votes** — Upvotes on posts or comments with XOR constraint
 - **notifications** — User notifications for role requests, comments, and votes
 - **bookmarks** — Saved posts per user
+- **reports** — User reports for moderation
 
 ### Key design decisions
 
@@ -48,6 +52,8 @@ This folder contains SQL migration files for the Study Circle database.
 - Foreign keys with CASCADE delete for data integrity
 - Email stored in profiles for admin panel display
 - Database function for user deletion (cascades to all related data)
+- Admin moderation policies for content management
+- User suspension system for account management
 
 ---
 
