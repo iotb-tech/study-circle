@@ -21,7 +21,7 @@ export const fetchCommentsByPostId = async (
     .select(
       `
       *,
-      profiles:user_id (display_name, role),
+      profiles:user_id (display_name, role, email),
       votes (id, user_id, value)
     `,
     )

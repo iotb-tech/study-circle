@@ -124,6 +124,8 @@ study-circle/
 - **comments** — Threaded discussions on posts
 - **votes** — Upvotes on posts and comments (XOR constraint)
 - **notifications** — User notifications for role requests and approvals
+- **bookmarks** — Saved posts per user
+- **reports** — User reports for moderation
 
 ### Key Decisions
 
@@ -183,6 +185,17 @@ Row Level Security enabled on all tables:
 - Authenticated users can only modify their own content
 - Vote uniqueness enforced at database level
 - Post authors can moderate comments on their posts
+
+---
+
+## Moderation Features
+
+Study Circle includes tools for content and user management:
+
+- **Report User** — Fellows can report inappropriate behavior from Settings
+- **Suspend User** — Admins can suspend accounts from Admin Panel
+- **Content Moderation** — Admins can delete any post or comment
+- **Role Management** — Admins can promote fellows to mentors
 
 ---
 
@@ -259,6 +272,9 @@ Database migrations live in `supabase/migrations/`. Apply them via Supabase SQL 
 - `07_bookmarks.sql`
 - `08_add_email_to_profiles.sql`
 - `09_delete_user_function.sql`
+- `10_admin_content_moderation.sql`
+- `11_user_reports.sql`
+- `12_suspend_user.sql`
 
 Before running `seed-data.sql`:
 

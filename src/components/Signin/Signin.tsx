@@ -69,10 +69,29 @@ export default function Signin() {
         return;
       }
 
-      // window.location.href = "/dashboard";
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("suspended")
+          .eq("id", user.id)
+          .single();
+
+        if (profile?.suspended) {
+          await supabase.auth.signOut();
+          setServerError(
+            "Your account has been suspended. Please contact an admin.",
+          );
+          return;
+        }
+      }
+
       setTimeout(() => {
-      window.location.replace("/dashboard");
-    }, 300);
+        window.location.replace("/dashboard");
+      }, 300);
     } catch (error) {
       console.error("Signin error:", error);
       setServerError("An unexpected error occurred. Please try again.");

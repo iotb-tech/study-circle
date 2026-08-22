@@ -23,7 +23,7 @@ export const fetchPosts = async (): Promise<Post[]> => {
     .select(
       `
       *,
-      profiles:user_id (display_name, avatar_url, role),
+      profiles:user_id (display_name, avatar_url, role, email),
       comments_count:comments(count),
       votes_count:votes(count)
     `,

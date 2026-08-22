@@ -56,9 +56,15 @@ export default function DashLayout({
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, display_name, avatar_url, role, bio")
+        .select("id, display_name, avatar_url, role, bio, suspended")
         .eq("id", user.id)
         .single();
+
+      if (profile?.suspended) {
+        await supabase.auth.signOut();
+        router.push("/signin");
+        return;
+      }
 
       const role = profile?.role;
 

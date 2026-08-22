@@ -32,13 +32,26 @@ export default function PostDetailPage() {
     string | null
   >(null);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
     const getUserId = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
+
+      if (!user) return;
+
+      setCurrentUserId(user.id);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role === "admin") {
+        setIsAdmin(true);
       }
     };
     getUserId();
@@ -309,7 +322,7 @@ export default function PostDetailPage() {
           </button>
         </div>
 
-        {currentUserId === post.user_id && (
+        {(currentUserId === post.user_id || isAdmin) && (
           <div className="flex items-center gap-2 border-t border-neutral-100 pt-4">
             {!editingPost ? (
               <>
@@ -425,7 +438,7 @@ export default function PostDetailPage() {
                   ({comment.votes?.length || 0})
                 </button>
 
-                {currentUserId === comment.user_id && (
+                {(currentUserId === comment.user_id || isAdmin) && (
                   <div className="flex items-center gap-2 mt-2">
                     {editingCommentId === comment.id ? (
                       <div className="w-full space-y-2">

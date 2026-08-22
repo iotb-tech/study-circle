@@ -19,6 +19,7 @@ interface PostCardProps {
       display_name: string | null;
       avatar_url: string | null;
       role?: "fellow" | "mentor" | "admin";
+      email?: string | null;
     } | null;
     comments_count?: Array<{ count: number }>;
     votes_count?: Array<{ count: number }>;
@@ -39,7 +40,9 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
   const { data: bookmarkData } = useQuery({
     queryKey: ["bookmark", post.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data } = await supabase
@@ -56,7 +59,9 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
   const isBookmarked = !!bookmarkData;
 
   const handleConfirmRemoveBookmark = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     await supabase
@@ -73,7 +78,9 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
   const toggleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     if (isBookmarked) {
@@ -130,14 +137,19 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
       )}
 
       {/* Footer: Author, date, stats */}
-      <div className="flex items-center justify-between text-xs text-neutral-400 border-t border-neutral-100 pt-3">
+      <div className="flex items-center justify-between text-xs text-neutral-400 border-t border-neutral-100 dark:border-neutral-500 pt-3">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
             <span className="text-xs font-medium text-primary-700">
               {initials}
             </span>
           </div>
-          <span className="text-neutral-600 font-medium">{displayName}</span>
+          <div className="flex flex-col">
+            <span className="text-neutral-600 dark:text-neutral-900 font-medium">{displayName}</span>
+            {post.profiles?.email && (
+              <p className="text-xs text-neutral-400 dark:text-neutral-500">{post.profiles.email}</p>
+            )}
+          </div>
 
           {post.profiles?.role === "mentor" && (
             <span className="px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 text-xs font-medium">
@@ -150,16 +162,16 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
             </span>
           )}
 
-          <span>·</span>
-          <span>{new Date(post.created_at).toLocaleDateString()}</span>
+          <span className="dark:text-neutral-500 font-bold text-xl">·</span>
+          <span className="dark:text-neutral-500">{new Date(post.created_at).toLocaleDateString()}</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 dark:text-neutral-500">
             <MessageSquare size={14} />
             {post.comments_count?.[0]?.count || 0}
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 dark:text-neutral-500">
             <ThumbsUp size={14} />
             {post.votes_count?.[0]?.count || 0}
           </span>
@@ -174,7 +186,7 @@ export default function PostCard({ post, onTagClick }: PostCardProps) {
             }}
             aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
             title="Bookmark"
-            className="flex items-center gap-1 text-neutral-400 transition-colors hover:text-primary-600 cursor-pointer"
+            className="flex items-center gap-1 text-neutral-400 dark:text-neutral-500 transition-colors hover:text-primary-600 cursor-pointer"
           >
             <Bookmark
               size={14}
