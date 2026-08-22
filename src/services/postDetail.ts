@@ -10,6 +10,7 @@ export interface PostDetail {
   profiles: {
     display_name: string | null;
     role?: "fellow" | "mentor" | "admin";
+    email?: string | null;
   } | null;
   votes: Array<{ id: string; user_id: string; value: number }>;
 }
@@ -21,7 +22,7 @@ export const fetchPostById = async (postId: string): Promise<PostDetail> => {
     .select(
       `
       *,
-      profiles:user_id (display_name, role),
+      profiles:user_id (display_name, role, email),
       votes (id, user_id, value)
     `,
     )
