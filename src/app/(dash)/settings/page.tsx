@@ -8,6 +8,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchProfileById } from "@/services/profile";
 import Spinner from "@/components/ui/Spinner";
 import useTheme from "@/hooks/useTheme";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
+import Button from "@/components/ui/Button";
 
 export default function SettingsPage() {
   const supabase = createClient();
@@ -24,6 +27,11 @@ export default function SettingsPage() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const { theme, setLightTheme, setDarkTheme } = useTheme();
+
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportEmail, setReportEmail] = useState("");
+  const [reportReason, setReportReason] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -158,6 +166,54 @@ export default function SettingsPage() {
     window.location.href = "/signin";
   };
 
+  const handleSubmitReport = async () => {
+    if (!reportEmail.trim() || !reportReason.trim()) return;
+
+    setSubmittingReport(true);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Create the report
+      const { error: reportError } = await supabase.from("reports").insert({
+        reporter_id: user.id,
+        reported_email: reportEmail.trim(),
+        reason: reportReason.trim(),
+      });
+
+      if (reportError) throw reportError;
+
+      // Notify all admins
+      const { data: admins } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("role", "admin");
+
+      if (admins && admins.length > 0) {
+        const notifications = admins.map((admin) => ({
+          user_id: admin.id,
+          type: "mention",
+          content: `New report filed against ${reportEmail}: ${reportReason.trim().slice(0, 100)}`,
+        }));
+
+        await supabase.from("notifications").insert(notifications);
+      }
+
+      showMessage("Report submitted. Admins will review it.", "warning");
+      setShowReportModal(false);
+      setReportEmail("");
+      setReportReason("");
+    } catch (err) {
+      console.error("Failed to submit report:", err);
+      showMessage("Failed to submit report. Please try again.", "error");
+    } finally {
+      setSubmittingReport(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -169,7 +225,9 @@ export default function SettingsPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Settings</h1>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+          Settings
+        </h1>
         <p className="text-sm text-neutral-500 mt-1 dark:text-neutral-200">
           Manage your profile and preferences
         </p>
@@ -190,7 +248,9 @@ export default function SettingsPage() {
       )}
 
       <div className="rounded-lg border border-neutral-200 bg-neutral-50/90 p-6 shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:shadow-xl">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Profile</h2>
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+          Profile
+        </h2>
 
         <div className="space-y-4">
           <div>
@@ -305,6 +365,21 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+          Report a User
+        </h2>
+        <p className="text-sm text-neutral-600 mb-4">
+          Report inappropriate behavior or content to the admins.
+        </p>
+        <button
+          onClick={() => setShowReportModal(true)}
+          className="rounded-lg border border-warning px-4 py-2 text-sm font-medium text-warning hover:bg-warning/10 transition-colors cursor-pointer"
+        >
+          Report User
+        </button>
+      </div>
+
       <div className="rounded-lg border border-error/20 bg-error/5 p-6 dark:bg-error/10 dark:shadow-xl shadow-xl">
         <h2 className="text-lg font-semibold text-error mb-2">Danger Zone</h2>
         <p className="text-sm text-neutral-600 dark:text-neutral-200 mb-4 mb-4">
@@ -326,6 +401,69 @@ export default function SettingsPage() {
         onConfirm={handleDeleteAccount}
         onCancel={() => setShowDeleteAccountModal(false)}
       />
+
+      {showReportModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowReportModal(false)}
+          />
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Report User
+            </h3>
+            <p className="text-sm text-neutral-600 mb-4">
+              Please provide the email of the user you&apos;re reporting and a
+              reason.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <Input
+                  type="email"
+                  value={reportEmail}
+                  onChange={(e) => setReportEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  label="User's Email"
+                />
+              </div>
+
+              <div>
+                <Textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Describe what happened..."
+                  label="Reason for Report"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button
+                  onClick={() => {
+                    setShowReportModal(false);
+                    setReportEmail("");
+                    setReportReason("");
+                  }}
+                  className="px-4 py-2 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmitReport}
+                  disabled={
+                    !reportEmail.trim() ||
+                    !reportReason.trim() ||
+                    submittingReport
+                  }
+                  // className="px-4 py-2 rounded-lg bg-warning text-white text-sm font-medium hover:bg-warning/90 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {submittingReport ? "Submitting..." : "Submit Report"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
