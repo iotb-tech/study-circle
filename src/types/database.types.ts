@@ -177,6 +177,7 @@ export type Database = {
           email: string | null
           id: string
           role: string
+          suspended: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -186,6 +187,7 @@ export type Database = {
           email?: string | null
           id: string
           role?: string
+          suspended?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -195,8 +197,44 @@ export type Database = {
           email?: string | null
           id?: string
           role?: string
+          suspended?: boolean
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reported_email: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reported_email: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reported_email?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       votes: {
         Row: {
