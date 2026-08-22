@@ -32,6 +32,7 @@ export default function SettingsPage() {
   const [reportEmail, setReportEmail] = useState("");
   const [reportReason, setReportReason] = useState("");
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [showMentorRequestModal, setShowMentorRequestModal] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -142,6 +143,7 @@ export default function SettingsPage() {
         "Mentor status requested! An admin will review your request.",
         "warning",
       );
+      setShowMentorRequestModal(false);
     } catch (err) {
       console.error("Failed to submit request:", err);
       showMessage("Failed to submit request. Please try again.", "error");
@@ -356,7 +358,7 @@ export default function SettingsPage() {
 
           {role === "fellow" && (
             <button
-              onClick={handleRequestMentor}
+              onClick={() => setShowMentorRequestModal(true)}
               className="rounded-lg border border-primary-500 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors cursor-pointer"
             >
               Request Mentor Status
@@ -464,6 +466,15 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showMentorRequestModal}
+        title="Request Mentor Status"
+        message="Are you sure you want to request mentor status? Admins will review your request and notify you of their decision."
+        confirmLabel="Submit Request"
+        onConfirm={handleRequestMentor}
+        onCancel={() => setShowMentorRequestModal(false)}
+      />
     </div>
   );
 }
