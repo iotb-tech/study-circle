@@ -17,6 +17,7 @@ interface UserWithProfile {
   display_name: string | null;
   role: UserRole;
   created_at: string;
+  suspended: boolean;
 }
 
 export default function AdminPage() {
@@ -30,6 +31,11 @@ export default function AdminPage() {
     type: "success" | "error";
   } | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [suspendUser, setSuspendUser] = useState<{
+    id: string;
+    name: string;
+    suspended: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -55,7 +61,7 @@ export default function AdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, role, created_at, email")
+        .select("id, display_name, role, created_at, email, suspended")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -132,6 +138,31 @@ export default function AdminPage() {
     setDeleteUserId(null);
   };
 
+  const handleConfirmSuspend = async () => {
+    if (!suspendUser) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ suspended: !suspendUser.suspended })
+      .eq("id", suspendUser.id);
+
+    if (error) {
+      setMessage({
+        text: `Failed to ${suspendUser.suspended ? "unsuspend" : "suspend"} user: ${error.message}`,
+        type: "error",
+      });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setMessage({
+        text: suspendUser.suspended ? "User unsuspended" : "User suspended",
+        type: "success",
+      });
+      setTimeout(() => setMessage(null), 3000);
+    }
+
+    setSuspendUser(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -156,7 +187,9 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">Admin Panel</h1>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+          Admin Panel
+        </h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-100 mt-1">
           Manage user roles and permissions
         </p>
@@ -244,6 +277,22 @@ export default function AdminPage() {
                 >
                   Delete
                 </button>
+                <button
+                  onClick={() =>
+                    setSuspendUser({
+                      id: user.id,
+                      name: user.display_name || "Anonymous",
+                      suspended: user.suspended,
+                    })
+                  }
+                  className={`text-sm cursor-pointer ${
+                    user.suspended
+                      ? "text-success hover:text-success/80"
+                      : "text-warning hover:text-warning/80"
+                  }`}
+                >
+                  {user.suspended ? "Unsuspend" : "Suspend"}
+                </button>
               </div>
             </div>
           ))}
@@ -271,6 +320,21 @@ export default function AdminPage() {
         confirmLabel="Delete User"
         onConfirm={handleDeleteUser}
         onCancel={() => setDeleteUserId(null)}
+      />
+
+      <ConfirmModal
+        isOpen={!!suspendUser}
+        title={suspendUser?.suspended ? "Unsuspend User" : "Suspend User"}
+        message={
+          suspendUser
+            ? suspendUser.suspended
+              ? `Are you sure you want to unsuspend ${suspendUser.name}? They will regain access to the platform.`
+              : `Are you sure you want to suspend ${suspendUser.name}? They will lose access to the platform until unsuspended.`
+            : ""
+        }
+        confirmLabel={suspendUser?.suspended ? "Unsuspend" : "Suspend"}
+        onConfirm={handleConfirmSuspend}
+        onCancel={() => setSuspendUser(null)}
       />
     </div>
   );
