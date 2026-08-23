@@ -10,7 +10,7 @@ Fellows ask questions in class group chats where answers get buried, the same qu
 
 ## Deployment
 
-Production URL:
+[Production URL](https://study-circle-ochre.vercel.app/)
 
 ---
 
@@ -285,20 +285,3 @@ Before running `seed-data.sql`:
 5. Run in Supabase SQL Editor
 
 See `supabase/migrations/README.md` for detailed instructions.
-
----
-
-## Deployment
-
-The application is designed for deployment on Vercel.
-
-### Deployment Steps
-
-1. Push the latest code to the `main` branch
-2. Connect the repository to Vercel
-3. Configure the required environment variables
-4. Trigger a deployment
-
-Production URL:
-
----
