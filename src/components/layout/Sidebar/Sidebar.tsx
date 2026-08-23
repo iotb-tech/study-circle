@@ -87,13 +87,15 @@ export default function Sidebar({ user }: SidebarProps) {
       <div className="p-4 border-t border-neutral-800">
         <div className="flex items-center gap-3">
           {avatarUrl ? (
-            <Image
-              src={avatarUrl}
-              alt={displayName}
-              width={36}
-              height={36}
-              className="rounded-full object-cover"
-            />
+            <div className="bg-neutral-300 rounded-full flex flex-col items-center justify-center text-center">
+              <Image
+                src={avatarUrl}
+                alt={displayName}
+                width={36}
+                height={36}
+                className="rounded-full object-cover"
+              />
+            </div>
           ) : (
             <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center">
               <span className="text-sm font-medium text-white">{initials}</span>
